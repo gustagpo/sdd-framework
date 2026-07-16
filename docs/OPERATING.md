@@ -13,10 +13,10 @@ Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...]`
 | **Preparação** | orquestrador | Confirma o nome da pasta, copia templates para `specs/features/<nome>/`, abre o `RUN.jsonl` e mostra a **estimativa de custo/duração** baseada no histórico (se houver) |
 | **1 — Research + Spec** | Team Leader | Discovery profundo (código, docs locais, web) → `RESEARCH.md`; depois `SPEC.md` + `PROMPT.md`. **[Gate 1]**: você revisa o research (perguntas em aberto!) e a spec |
 | **2 — Design** | UX/UI | `DESIGN.md` com layout, componentes, estados de UI. Pulado por completo se a spec é `backend-only`. **[Gate 2]** |
-| **3 — Contract** | Devs + QA (paralelo) | Rascunhos em `drafts/`; Dev Backend consolida o `CONTRACT.md`. **[Gate 3]** |
+| **3 — Contract** | Devs + QA + Security + DevOps (paralelo) | Rascunhos em `drafts/` (Security traz o threat model + casos SEC-XXX; DevOps traz requisitos operacionais + casos OPS-XXX); Dev Backend consolida o `CONTRACT.md`. **[Gate 3]** |
 | **4 — Testes (TDD)** | QA | Testes escritos e **falhando** (compilam); você confirma |
-| **5 — Implementação** | Devs (paralelo) | Código + build/testes passando; você confirma |
-| **6 — Avaliação** | UX/UI + QA (paralelo) | `EVALUATION.md` consolidado pelo QA; reprovações voltam ao Dev (máx. 3 iterações) |
+| **5 — Implementação** | Devs + DevOps (paralelo) | Código + build/testes passando; DevOps implementa os itens de infra do contrato (env templates, CI/CD, configs), se houver; você confirma |
+| **6 — Avaliação** | UX/UI + QA + Security + DevOps (paralelo) | `EVALUATION.md` com até 4 seções, consolidado pelo QA; aprovado geral exige TODAS as seções participantes; reprovações voltam ao responsável — `[DevOps]` corrige a própria infra (máx. 3 iterações) |
 | **7 — Fechamento** | Team Leader | `RESUME.md`, `STATE.md`, **retrospectiva de aprendizado**; orquestrador mostra o painel final consolidado |
 
 Ao fim de **cada** passo o orquestrador imprime o painel parcial (agente, modelo, duração, tokens, custo estimado, gates) e regenera o `DASHBOARD.md` da feature.
@@ -27,6 +27,12 @@ Ao fim de **cada** passo o orquestrador imprime o painel parcial (agente, modelo
 - **Pedir ajustes**: descreva o que mudar; o mesmo agente é re-invocado (iteração incrementada) e o gate se repete.
 - **Abortar**: peça para parar — a pasta da feature e o RUN.jsonl ficam como registro; retome depois rodando `/sdd` de novo com o mesmo nome (o orquestrador vê o que já existe).
 - Perguntas em aberto do `RESEARCH.md` aparecem no Gate 1 — respondê-las ali evita retrabalho nos passos seguintes.
+
+## Participação de Security e DevOps
+
+- Config `agents.security.participation` / `agents.devops.participation`: `"always"` (toda rodada — default), `"never"`, ou `"auto"` (entram quando o SPEC.md marcar `security_sensitive: true` / `infra_impact: true`; o Team Leader define os flags com base no research e você confirma no Gate 1).
+- Custo: no modo `always`, cada rodada ganha ~2 invocações a mais no Passo 3 e ~2 no Passo 6 (+1 no Passo 5 quando há infra). Projetos com muitas features simples podem preferir `"auto"`.
+- O Security **não corrige código** — findings dele são roteados aos Devs; o DevOps corrige os próprios itens de infra.
 
 ## Overrides de modelo
 

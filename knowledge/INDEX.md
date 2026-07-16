@@ -6,6 +6,14 @@
 
 <!-- - P-001 [processo][passo-3] Título curto -->
 
+## Segurança (PROCESS.md, tags [security])
+
+<!-- - P-1xx [security][passo-6] Título curto — lições do agente Security ficam em PROCESS.md com tag [security] -->
+
+## Ops (PROCESS.md, tags [ops])
+
+<!-- - P-2xx [ops][passo-5] Título curto — lições do agente DevOps ficam em PROCESS.md com tag [ops]; as específicas de stack vão para stacks/<perfil>.md -->
+
 ## Stack: NestJS (stacks/nestjs.md)
 
 - N-001 [jest][qa] Jest 30: a flag é `--testPathPatterns` (plural)

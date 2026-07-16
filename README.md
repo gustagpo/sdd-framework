@@ -1,11 +1,11 @@
 # SDD Framework
 
-**Spec-Driven Design multi-agente para Claude Code.** Um plugin que orquestra o desenvolvimento de features através de um time de agentes especializados — Team Leader, UX/UI, Dev Backend, Dev Frontend e QA — com modelo de LLM configurável por agente, painel de custos por rodada e uma base de conhecimento que aprende a cada projeto.
+**Spec-Driven Design multi-agente para Claude Code.** Um plugin que orquestra o desenvolvimento de features através de um time de agentes especializados — Team Leader, UX/UI, Dev Backend, Dev Frontend, QA, **Security** e **DevOps** — com modelo de LLM configurável por agente, painel de custos por rodada e uma base de conhecimento que aprende a cada projeto.
 
 ## Filosofia
 
 1. **Spec antes de código** — nenhuma feature é implementada sem `RESEARCH.md` + `SPEC.md` + `CONTRACT.md` aprovados. O Team Leader pesquisa a fundo (código, documentação local, web) antes de especificar.
-2. **Papéis exclusivos** — cada agente só faz a sua função: Dev não decide design, UX/UI não escreve código, QA não escreve código de produção, Team Leader não implementa.
+2. **Papéis exclusivos** — cada agente só faz a sua função: Dev não decide design, UX/UI não escreve código, QA não escreve código de produção, Team Leader não implementa, Security especifica e revisa (não corrige), DevOps cuida da infra (não do código de aplicação).
 3. **Gates humanos** — o usuário aprova explicitamente a spec, o design e o contrato antes de qualquer implementação.
 4. **TDD** — o QA escreve os testes antes de a feature existir; os Devs os fazem passar.
 5. **Multi-stack** — o núcleo (fluxo + standards DDD/SOLID/API) é agnóstico; cada projeto declara sua stack (NestJS, Next.js, Python/FastAPI, Spring Boot, ...) via perfil + `STACK.md`.
@@ -38,8 +38,8 @@ claude plugin enable sdd-framework@sdd-framework --scope project
 | Diretório | Conteúdo |
 |---|---|
 | `commands/` | `/sdd` (orquestrador de 7 passos), `/sdd-init` (bootstrap/adoção), `/sdd-dashboard` (custos/histórico) |
-| `agents/` | 5 subagents genéricos (`sdd-team-leader`, `sdd-ux-ui`, `sdd-dev-backend`, `sdd-dev-frontend`, `sdd-qa`) |
-| `standards/` | DDD.md, SOLID.md, API.md (núcleo) + `stacks/` (nestjs, nextjs, python-fastapi, spring-boot) |
+| `agents/` | 7 subagents genéricos (`sdd-team-leader`, `sdd-ux-ui`, `sdd-dev-backend`, `sdd-dev-frontend`, `sdd-qa`, `sdd-security`, `sdd-devops`) |
+| `standards/` | DDD.md, SOLID.md, API.md, SECURITY.md, OPS.md (núcleo) + `stacks/` (nestjs, nextjs, python-fastapi, spring-boot) |
 | `templates/` | Templates dos documentos de feature (RESEARCH/SPEC/PROMPT/DESIGN/CONTRACT/EVALUATION/RESUME) e de projeto (STACK, config, docs vivos) |
 | `scripts/` | Telemetria determinística: `sdd-tokens.mjs` (tokens/custo dos transcripts), `sdd-report.mjs` (painéis), `pricing.json` |
 | `knowledge/` | Base de conhecimento entre projetos: lições de processo, lições por stack, índice de rodadas |

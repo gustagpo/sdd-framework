@@ -1,5 +1,7 @@
 ---
 scope: fullstack
+security_sensitive: false
+infra_impact: false
 ---
 
 # Spec: [Nome da Feature]
@@ -10,7 +12,7 @@ scope: fullstack
 **Prioridade**: Alta | Média | Baixa
 **Baseado em**: `RESEARCH.md`
 
-> `scope` no frontmatter: `fullstack` | `backend-only` | `frontend-only`. Decide quais passos do fluxo rodam (backend-only pula o DESIGN.md).
+> Frontmatter: `scope` (`fullstack` | `backend-only` | `frontend-only`) decide quais passos rodam (backend-only pula o DESIGN.md). `security_sensitive` = a feature toca auth, pagamentos, PII, entrada externa, webhooks ou cripto. `infra_impact` = env vars novas, migration com rollout, jobs/filas ou CI/CD. Os dois flags orientam a participação dos agentes Security e DevOps (modo `auto`) e dão contexto ao time mesmo no modo `always`.
 
 ---
 

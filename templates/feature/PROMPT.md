@@ -59,6 +59,30 @@
 
 ---
 
+## Para o Security (se participante)
+
+**Contexto**: [Superfícies expostas e dados sensíveis que a feature toca — rotas públicas, webhooks, PII, pagamentos; referência às seções do RESEARCH.md.]
+
+**Tarefa**:
+
+- [ ] Threat model proporcional ao risco
+- [ ] Requisitos de segurança rastreáveis a SEC-XX/A-XX
+- [ ] Casos SEC-XXX (authz/IDOR, entrada maliciosa, segredos, replay de webhook)
+
+---
+
+## Para o DevOps (se participante)
+
+**Contexto**: [Impacto operacional — env vars, migrations, jobs, CI/CD; referência ao RESEARCH.md.]
+
+**Tarefa**:
+
+- [ ] Requisitos operacionais (config, rollout de migration, observabilidade, rollback)
+- [ ] Casos OPS-XXX (boot sem env, migration 2x, job idempotente)
+- [ ] Itens de infra a implementar no Passo 5, se houver
+
+---
+
 ## Para o UX/UI (se `scope` incluir frontend)
 
 **Contexto**: [Complexidade visual ou fluxo de UX da feature.]

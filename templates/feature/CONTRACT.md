@@ -22,6 +22,21 @@
 - [ ] Navegação: grupo [X], ícone [Y], permissão [ENTIDADE/read]
 - [ ] Viabilidade do DESIGN.md confirmada pelo Dev Frontend: SIM | ajustes solicitados ao UX/UI: [...]
 
+### Segurança (requisitos — do threat model)
+
+> Superfícies expostas, dados sensíveis e requisitos rastreáveis (SEC-XX/A-XX). Feature de baixo risco: declarar isso explicitamente.
+
+- [ ] [ex.: rota X exige permissão Y; webhook Z valida token antes de processar — SEC-07]
+
+### Operação / Deploy
+
+> Requisitos operacionais (OPS-XX). Feature sem impacto de infra: declarar isso explicitamente.
+
+- [ ] Env vars novas: [nome, propósito, default, documentada em .env.example]
+- [ ] Migration: [estratégia de rollout + reversão]
+- [ ] Jobs/observabilidade/rollback: [...]
+- [ ] Itens de infra a implementar pelo DevOps no Passo 5: [... | nenhum]
+
 ---
 
 ## Como será implementado
@@ -77,6 +92,21 @@
 | F-003 | Criar item | preencher form e enviar | feedback de sucesso + lista atualizada |
 | F-004 | Validação de form | enviar sem campo obrigatório | erro no campo |
 | F-005 | Erro de API | API retorna 500 | feedback de erro descritivo |
+
+### Casos de Teste de Segurança (se Security participante)
+
+| ID | Cenário | Ataque simulado | Esperado |
+|---|---|---|---|
+| SEC-001 | Authz — recurso de outro usuário | GET com id alheio | `403`/`404`, nunca o dado |
+| SEC-002 | Entrada maliciosa na borda | payload com injeção | rejeitado com `400`, sem efeito |
+| SEC-003 | Webhook sem assinatura válida | POST sem/soma token errado | `401`, nada processado |
+
+### Casos de Verificação Operacional (se DevOps participante)
+
+| ID | Cenário | Verificação esperada |
+|---|---|---|
+| OPS-001 | Boot sem a env nova | falha explícita (ou default seguro documentado) |
+| OPS-002 | Migration executada 2x | idempotente — sem erro nem corrupção |
 
 ### Critérios de Regressão
 

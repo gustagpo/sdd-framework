@@ -1,6 +1,6 @@
 {
   "name": "sdd-framework",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Spec-Driven Design multi-agente: orquestra features via time de agentes (Team Leader, UX/UI, Devs, QA) com modelo configurável por agente, painel de custos e aprendizado contínuo entre projetos.",
   "author": {
     "name": "Gustavo Peixoto"

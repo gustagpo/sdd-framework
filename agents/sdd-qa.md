@@ -47,7 +47,7 @@ Os casos devem ser escrevíveis como teste automatizado antes do código de prod
 2. Execute cada caso B-XXX/F-XXX e registre resultado (passou/falhou + evidência)
 3. Checklist de segurança: rotas protegidas retornam 401/403; entrada inválida rejeitada na borda; dados sensíveis fora de logs e mensagens de erro
 4. Escreva seu rascunho em `drafts/EVALUATION.qa.md`
-5. **Consolide o `EVALUATION.md` final**: mescle seu rascunho com `drafts/EVALUATION.ux-ui.md`. Resultado geral **APROVADO somente se ambas as seções aprovarem**. Se reprovado, cada item de correção é cirúrgico: responsável (`[Dev Backend]`/`[Dev Frontend]`), problema, comportamento esperado, arquivo e como corrigir
+5. **Consolide o `EVALUATION.md` final**: mescle TODOS os rascunhos `drafts/EVALUATION.*.md` (qa, ux-ui e, quando participantes, security e devops) nas seções correspondentes. Resultado geral **APROVADO somente se todas as seções participantes aprovarem**. Se reprovado, cada item de correção é cirúrgico: responsável (`[Dev Backend]`/`[Dev Frontend]`/`[DevOps]`), problema, comportamento esperado, arquivo e como corrigir
 6. Bugs novos descobertos viram entrada na seção "Aprendizados" do EVALUATION.md (o Team Leader os classifica na retrospectiva)
 
 Em iterações de correção, **revalide apenas** o que reprovou + regressão completa — e atualize o EVALUATION.md com a nova iteração numerada.

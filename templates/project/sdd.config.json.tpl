@@ -40,6 +40,16 @@
     "qa": {
       "subagent": "sdd-qa",
       "model": "opus"
+    },
+    "security": {
+      "subagent": "sdd-security",
+      "model": "opus",
+      "participation": "always"
+    },
+    "devops": {
+      "subagent": "sdd-devops",
+      "model": "opus",
+      "participation": "always"
     }
   },
   "context": {
@@ -49,7 +59,9 @@
       "ux-ui": ["specs/ARCHITECTURE.md"],
       "dev-backend": ["specs/ARCHITECTURE.md", "specs/TESTS.md", "specs/LESSONS.md"],
       "dev-frontend": ["specs/ARCHITECTURE.md", "specs/LESSONS.md"],
-      "qa": ["specs/TESTS.md", "specs/LESSONS.md"]
+      "qa": ["specs/TESTS.md", "specs/LESSONS.md"],
+      "security": ["specs/LESSONS.md"],
+      "devops": ["specs/ARCHITECTURE.md", "specs/TESTS.md"]
     },
     "lessonsMode": "index"
   },

@@ -12,6 +12,7 @@ Exemplo: `/sdd cancelamento-contrato "Permitir cancelar um contrato liberando re
 
 1. **Parsear `$ARGUMENTS`**: (a) nome da feature (primeiro token, kebab-case), (b) descrição (texto entre aspas ou restante), (c) overrides opcionais `--model papel=modelo[,papel=modelo...]`.
 2. **Ler a configuração** `specs/sdd.config.json`. Se não existir, **pare** e instrua: "Projeto sem configuração SDD — rode `/sdd-init` primeiro."
+   - **Participação de security/devops**: resolva por `agents.<papel>.participation` — `"always"` = toda rodada; `"never"` = nunca; `"auto"` = decide após o Gate 1 pelos flags `security_sensitive`/`infra_impact` do frontmatter do SPEC.md (o usuário pode forçar/dispensar no gate). Papel ausente da config = não participa.
 3. **Ler o contexto do projeto**: `specs/STACK.md` (obrigatório) e os arquivos de `context.alwaysRead`.
 4. **Resolver caminhos do plugin**: `${CLAUDE_PLUGIN_ROOT}` é a raiz do plugin. Materialize em variáveis os caminhos ABSOLUTOS (subagents não têm essa variável — sempre injete caminhos absolutos nos prompts):
    - Standards: `${CLAUDE_PLUGIN_ROOT}/standards/DDD.md`, `SOLID.md`, `API.md`, `stacks/<backendProfile>.md`, `stacks/<frontendProfile>.md` (se existir)
@@ -41,6 +42,8 @@ Agent({
             dev-backend → DDD, SOLID, API, stacks/<backendProfile>
             dev-frontend → SOLID, API, stacks/<frontendProfile ou backendProfile>
             qa → API, stacks/<backendProfile>
+            security → SECURITY, API
+            devops → OPS, stacks/<backendProfile>
             team-leader/ux-ui → (apenas contexto do projeto e knowledge)
         + "\n\nComandos do projeto (use exatamente estes):\n" + config.commands relevantes
         + "\n\nArtefatos da feature já produzidos:\n" + paths (nunca conteúdo inline)
@@ -75,7 +78,7 @@ Invoque o **team-leader** com a tarefa em duas fases na MESMA invocação:
 
 > **Fase 1a — Discovery (pesquisa profunda).** Feature: **<nome>** — "<descrição>". Investigue como se estivesse em Plan Mode e preencha `specs/features/<nome>/RESEARCH.md`: requisitos (explícitos e implícitos), código/arquitetura afetada (explore o repositório), e integrações externas. Fontes de documentação local do projeto (consulte PRIMEIRO): <lista de research.docsDirs e research.openApiSpecs, paths absolutos>. Para APIs externas sem doc local, pesquise na web a documentação oficial (webSearch está <habilitado/desabilitado> na config). Toda afirmação com fonte; perguntas sem resposta vão para "Perguntas em aberto".
 >
-> **Fase 1b — Especificação.** Com o research pronto, preencha `SPEC.md` (declare `scope: fullstack|backend-only|frontend-only` no frontmatter, fundamente no research citando fontes) e `PROMPT.md`.
+> **Fase 1b — Especificação.** Com o research pronto, preencha `SPEC.md` (frontmatter: `scope: fullstack|backend-only|frontend-only` + `security_sensitive: true|false` [toca auth, pagamentos, PII, entrada externa, webhooks, cripto?] + `infra_impact: true|false` [env vars novas, migration com rollout, jobs, filas, CI/CD?] — fundamentados no research) e `PROMPT.md`.
 
 **[Gate 1]** — Apresente ao usuário o RESEARCH.md (destacando as perguntas em aberto) e o SPEC.md. Pergunte: "O SPEC.md está correto? Posso prosseguir?" **Aguarde aprovação explícita.** Registre no RUN.jsonl:
 ```json
@@ -93,15 +96,17 @@ Caso contrário, invoque o **ux-ui**:
 
 **[Gate 2]** — Apresente o DESIGN.md e aguarde aprovação explícita. Registre o evento `gate` (step 2).
 
-## Passo 3 — Devs + QA (paralelo): CONTRACT.md
+## Passo 3 — Devs + QA + Security + DevOps (paralelo): CONTRACT.md
 
-Invoque **em paralelo** (mesmo bloco): **dev-backend**, **dev-frontend** (pule se `scope: backend-only`) e **qa**. Cada um escreve seu rascunho em `specs/features/<nome>/drafts/CONTRACT.<papel>.md`:
+Invoque **em paralelo** (mesmo bloco): **dev-backend**, **dev-frontend** (pule se `scope: backend-only`), **qa** e — conforme participação resolvida — **security** e **devops**. Cada um escreve seu rascunho em `specs/features/<nome>/drafts/CONTRACT.<papel>.md`:
 
 - **dev-backend** → seção Backend: endpoints (conforme standards/API.md), modelos/migrations, decisões técnicas, casos B-XXX propostos
 - **dev-frontend** → viabilidade do DESIGN.md (item a item), seção Frontend, contrato de API acordado, casos F-XXX propostos
 - **qa** → casos de teste B-XXX/F-XXX completos (happy path, validação, inexistente, idempotência, 401/403), critérios de regressão (fluxos críticos do STACK.md), fora de escopo
+- **security** → threat model da feature + requisitos de segurança (rastreáveis a SEC-XX/A-XX) + casos SEC-XXX
+- **devops** → requisitos operacionais (env vars, rollout de migrations, jobs, observabilidade, rollback, CI/CD) + casos OPS-XXX
 
-Quando os três retornarem, invoque o **consolidador** (`conventions.contractConsolidator`, default `dev-backend`):
+Quando todos retornarem, invoque o **consolidador** (`conventions.contractConsolidator`, default `dev-backend`):
 
 > Consolide os rascunhos `drafts/CONTRACT.*.md` em um único `specs/features/<nome>/CONTRACT.md` coerente. Resolva conflitos explicitamente (registre a decisão e o porquê). Garanta o contrato de API fechado (shape exato de request/response).
 
@@ -115,27 +120,30 @@ Invoque o **qa**:
 
 Mostre ao usuário os arquivos de teste criados e o resultado da execução; prossiga após confirmação.
 
-## Passo 5 — Devs: implementação
+## Passo 5 — Devs (+ DevOps): implementação
 
-Invoque **em paralelo** (conforme `scope`): **dev-backend** e/ou **dev-frontend**:
+Invoque **em paralelo** (conforme `scope`): **dev-backend** e/ou **dev-frontend** — e **devops**, se o CONTRACT.md aprovado tiver itens de infraestrutura (env vars/templates, CI/CD, configs de deploy, definição de jobs):
 
 - **dev-backend** → implementar exatamente o CONTRACT.md (camadas DDD conforme perfil da stack + STACK.md); ao final rodar `<commands["build:backend"]>` (0 erros) e `<commands["test:backend"] com {pattern}>` até os testes do QA passarem.
 - **dev-frontend** → implementar seguindo o DESIGN.md rigorosamente (nenhuma decisão visual própria); todos os estados de UI; ao final rodar `<commands["build:frontend"]>` (0 erros).
+- **devops** → implementar apenas os itens de infra do contrato (`.env.example`, CI/CD, configs, jobs); mudanças em código de aplicação continuam com os Devs.
 
 Mostre o que foi implementado e os resultados de build/teste; prossiga após confirmação.
 
-## Passo 6 — UX/UI + QA (paralelo): EVALUATION.md + loop de correção
+## Passo 6 — UX/UI + QA + Security + DevOps (paralelo): EVALUATION.md + loop de correção
 
-Invoque **em paralelo**: **ux-ui** (pule se `scope: backend-only`) e **qa**:
+Invoque **em paralelo**: **ux-ui** (pule se `scope: backend-only`), **qa** e — conforme participação — **security** e **devops**:
 
 - **ux-ui** → validar fidelidade ao DESIGN.md lendo o código implementado; escrever `drafts/EVALUATION.ux-ui.md` com os checklists e veredito APROVADO/REPROVADO (desvios cirúrgicos: arquivo, observado, esperado)
 - **qa** → rodar a suíte completa (`<commands["test:backend"] sem filtro ou test full do projeto>`), build, e2e se configurado; executar B-XXX/F-XXX; escrever `drafts/EVALUATION.qa.md` com veredito
+- **security** → revisar o código implementado contra os requisitos e casos SEC-XXX do contrato + checklist SEC-XX; escrever `drafts/EVALUATION.security.md` com veredito e findings por severidade
+- **devops** → validar deployability (casos OPS-XXX + checklist OPS-XX: build de produção, envs documentadas, migration idempotente, rollback, logs); escrever `drafts/EVALUATION.devops.md` com veredito
 
 Depois, invoque o **consolidador** (`conventions.evaluationConsolidator`, default `qa`):
 
-> Consolide `drafts/EVALUATION.*.md` no `EVALUATION.md` final. Resultado geral APROVADO somente se ambas as seções aprovarem.
+> Consolide todos os `drafts/EVALUATION.*.md` no `EVALUATION.md` final (seções: Funcional, UX/UI, Segurança, DevOps — conforme participantes). Resultado geral APROVADO somente se TODAS as seções participantes aprovarem.
 
-**Loop de correção** (se REPROVADO): invoque o(s) Dev(s) com os itens específicos do EVALUATION.md → re-invoque APENAS quem reprovou para revalidar → re-consolide. Cada volta incrementa `iteration` nos eventos do RUN.jsonl. Máximo `conventions.maxFixIterations` (default 3) iterações — se estourar, pare e apresente a situação ao usuário.
+**Loop de correção** (se REPROVADO): invoque o(s) responsável(is) com os itens específicos do EVALUATION.md — findings `[Dev Backend]`/`[Dev Frontend]` vão aos Devs; `[DevOps]` vai ao próprio devops → re-invoque APENAS quem reprovou para revalidar → re-consolide. Cada volta incrementa `iteration` nos eventos do RUN.jsonl. Máximo `conventions.maxFixIterations` (default 3) iterações — se estourar, pare e apresente a situação ao usuário.
 
 ## Passo 7 — Team Leader: RESUME.md + STATE.md + retrospectiva
 

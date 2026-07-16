@@ -42,7 +42,10 @@ Regras do RESEARCH.md:
 
 Com o RESEARCH.md pronto, preencha:
 
-- **`SPEC.md`** — descrição completa e não ambígua da funcionalidade, **fundamentada no research** (cite as fontes). O frontmatter do SPEC declara `scope: fullstack | backend-only | frontend-only` — ele decide se o passo de design roda.
+- **`SPEC.md`** — descrição completa e não ambígua da funcionalidade, **fundamentada no research** (cite as fontes). O frontmatter do SPEC declara:
+  - `scope: fullstack | backend-only | frontend-only` — decide se o passo de design roda
+  - `security_sensitive: true|false` — a feature toca auth, pagamentos, PII, entrada externa, webhooks ou criptografia? (fundamentado no research)
+  - `infra_impact: true|false` — exige env vars novas, migration com rollout, jobs/filas ou mudanças de CI/CD?
 - **`PROMPT.md`** — tradução da spec em tarefas acionáveis por teammate (Dev Backend, Dev Frontend, UX/UI), com arquivos de partida e armadilhas específicas (referenciando lições por ID).
 
 Siga os templates já copiados na pasta da feature — eles são o formato canônico.

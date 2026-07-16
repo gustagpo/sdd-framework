@@ -2,7 +2,7 @@
 
 **Data**: YYYY-MM-DD
 **Iteração**: 1
-**Consolidado por**: QA (a partir de `drafts/EVALUATION.qa.md` + `drafts/EVALUATION.ux-ui.md`)
+**Consolidado por**: QA (a partir de todos os `drafts/EVALUATION.*.md` — qa, ux-ui, security, devops)
 
 ---
 
@@ -10,7 +10,7 @@
 
 > APROVADO | REPROVADO
 
-_(Aprovado somente quando **ambas** as seções — Funcional e UX/UI — estiverem aprovadas)_
+_(Aprovado somente quando **TODAS** as seções participantes — Funcional, UX/UI, Segurança e DevOps — estiverem aprovadas)_
 
 ---
 
@@ -108,11 +108,59 @@ _(Aprovado somente quando **ambas** as seções — Funcional e UX/UI — estive
 
 ---
 
+## Seção 3 — Segurança (Security, se participante)
+
+### Casos SEC-XXX do contrato
+
+| ID | Cenário | Resultado | Observação |
+|---|---|---|---|
+| SEC-001 | ... | ✅ PASSOU / ❌ FALHOU | |
+
+### Checklist SEC-XX aplicável
+
+| Regra | Resultado | Observação |
+|---|---|---|
+| SEC-02 authz em toda rota nova | ✅/❌ | |
+| SEC-04/05 segredos fora de código e logs | ✅/❌ | |
+| SEC-06 acesso a dados parametrizado | ✅/❌ | |
+| SEC-07/08 webhook validado e idempotente | ✅/❌ | |
+
+### Findings
+
+| Severidade | Responsável | Arquivo | Problema → Como corrigir |
+|---|---|---|---|
+| CRÍTICA/ALTA/MÉDIA/BAIXA | [Dev Backend] | `path` | ... |
+
+### Resultado Segurança: APROVADO | REPROVADO
+
+---
+
+## Seção 4 — DevOps (se participante)
+
+### Casos OPS-XXX do contrato
+
+| ID | Cenário | Resultado | Observação |
+|---|---|---|---|
+| OPS-001 | ... | ✅ PASSOU / ❌ FALHOU | |
+
+### Checklist de deployability
+
+| Item | Resultado | Observação |
+|---|---|---|
+| Build de produção passa | ✅/❌ | |
+| Envs novas documentadas + comportamento sem elas definido | ✅/❌ | |
+| Migration idempotente + rollback definido | ✅/❌ | |
+| Logs de diagnóstico sem dados sensíveis | ✅/❌ | |
+
+### Resultado DevOps: APROVADO | REPROVADO
+
+---
+
 ## Itens de Refatoração
 
 > Preencher apenas se REPROVADO em qualquer seção. Cirúrgico: arquivo, observado, esperado, como corrigir.
 
-### [Dev Backend | Dev Frontend] — [ID ou título]
+### [Dev Backend | Dev Frontend | DevOps] — [ID ou título]
 
 **Problema**: [observado]
 **Esperado**: [comportamento correto, com referência ao CONTRACT/DESIGN]

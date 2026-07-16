@@ -32,7 +32,7 @@ Cada agente recebe no prompt os **caminhos** (nunca conteúdo inline) dos docume
 1. specs/STACK.md do projeto           (regras do repositório)
 2. knowledge/ do plugin                 (lições acumuladas — via INDEX.md + tags)
 3. standards/stacks/<perfil>.md         (como a stack materializa os princípios)
-4. standards/DDD|SOLID|API.md           (princípios genéricos e regras verificáveis)
+4. standards/DDD|SOLID|API|SECURITY|OPS.md  (princípios genéricos e regras verificáveis por papel)
 ```
 
 `context.byAgent` no config adiciona os documentos vivos por papel; `lessonsMode: "index"` faz os agentes lerem o índice do LESSONS.md e abrirem só as lições relevantes (controle de contexto).
@@ -41,7 +41,7 @@ Cada agente recebe no prompt os **caminhos** (nunca conteúdo inline) dos docume
 
 - Resolve `${CLAUDE_PLUGIN_ROOT}` e **materializa caminhos absolutos** nos prompts (subagents não têm a variável).
 - Invoca cada papel via `Agent({subagent_type, model, prompt})` — o `model` vem do config (override por rodada via `--model`), com retry em `fallbackModel`.
-- Passos 3, 5 e 6 disparam agentes **em paralelo** (mesmo bloco de tool calls); consolidadores definidos em `conventions`.
+- Passos 3, 5 e 6 disparam agentes **em paralelo** (mesmo bloco de tool calls); consolidadores definidos em `conventions`. Security e DevOps entram nos Passos 3 e 6 (e DevOps no 5, quando o contrato tem infra) conforme `participation` — no Passo 6 o EVALUATION consolida até 4 seções (Funcional, UX/UI, Segurança, DevOps) e o aprovado geral exige todas.
 - Registra cada invocação/gate no `RUN.jsonl` e roda os scripts de telemetria ao fim de cada passo (best-effort — telemetria nunca bloqueia o fluxo).
 - Só escreve: eventos no RUN.jsonl, placeholders do RESUME.md e cópia inicial de templates. Código e documentos são sempre dos agentes.
 
@@ -59,7 +59,8 @@ Contrato de entrega comum: a mensagem final de cada agente é (a) resumo ≤3 li
   "project":  { "name": "...", "specsDir": "specs" },
   "stack":    { "backendProfile": "nestjs", "frontendProfile": "react-vite", "stackFile": "specs/STACK.md" },
   "commands": { "build:backend": "...", "test:backend": "... --testPathPatterns=\"{pattern}\"", "test:backend:full": "...", "test:e2e": "...", "build:frontend": "..." },
-  "agents":   { "<papel>": { "subagent": "sdd-*", "model": "fable|opus|sonnet|haiku", "fallbackModel": "...", "enabled": true, "objective": "..." } },
+  "agents":   { "<papel>": { "subagent": "sdd-*", "model": "fable|opus|sonnet|haiku", "fallbackModel": "...", "enabled": true, "objective": "...",
+                             "participation": "always|auto|never" } },  // participation: só security/devops — "auto" segue os flags security_sensitive/infra_impact do SPEC
   "context":  { "alwaysRead": [...], "byAgent": { "<papel>": [...] }, "lessonsMode": "index|full" },
   "research": { "enabled": true, "docsDirs": [...], "openApiSpecs": [...], "webSearch": true },
   "gates":    { "afterStep1": true, "afterStep2": true, "afterStep3": true },
