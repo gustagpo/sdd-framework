@@ -148,6 +148,7 @@ Invoque o **team-leader**:
 
 Depois que o team-leader retornar, **você (orquestrador)**:
 
+0. **Sincronize o aprendizado com o repo fonte do framework** (a cópia instalada do plugin pode não ser versionada e é substituída em atualizações): se `project.frameworkRepo` estiver definido no config (path local do clone fonte), replique as mudanças de `knowledge/` (e de standards, se a retrospectiva corrigiu algum) para lá, commit com prefixo `learn:` e **pergunte ao usuário antes de dar push**. Sem `frameworkRepo`, apresente o diff do knowledge ao usuário e instrua a aplicá-lo ao repo fonte — nunca deixe lição existindo só na cópia instalada.
 1. Substitua no RESUME.md os placeholders: `{{AGENT_MODELS}}` → lista `papel=modelo` real da rodada (do RUN.jsonl); `{{MODEL_NAME}}` → modelo da sessão atual.
 2. Feche a rodada no RUN.jsonl:
    ```json

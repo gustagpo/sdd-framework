@@ -2,7 +2,8 @@
   "version": 1,
   "project": {
     "name": "{{PROJECT_NAME}}",
-    "specsDir": "specs"
+    "specsDir": "specs",
+    "frameworkRepo": null
   },
   "stack": {
     "backendProfile": "{{BACKEND_PROFILE}}",

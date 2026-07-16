@@ -40,6 +40,19 @@ O orquestrador injeta na cadeia de contexto de cada agente: `knowledge/INDEX.md`
 - **Visão entre projetos**: `/sdd-dashboard --global`.
 - **Sugestão de downgrade**: quando o histórico mostra que um papel nunca reprova/itera com determinado modelo, o dashboard **sugere** testar um modelo mais barato — a decisão é sempre humana (editar o config).
 
+## Sincronização com o repo fonte
+
+A cópia do plugin que os agentes usam em runtime (`~/.claude/plugins/cache/...`) **não é versionada** e é substituída quando o plugin atualiza. Por isso o orquestrador, ao fim do Passo 7, replica as mudanças de `knowledge/` para o clone fonte apontado por `project.frameworkRepo` no `sdd.config.json`, commita com prefixo `learn:` e pergunta antes de dar push. Fluxo completo:
+
+```
+retrospectiva escreve em ${CLAUDE_PLUGIN_ROOT}/knowledge (efeito imediato na máquina)
+      → replica no clone fonte (frameworkRepo) → commit "learn: ..." → push (com aprovação)
+      → outros projetos/máquinas recebem via: claude plugin marketplace update sdd-framework
+        + claude plugin update sdd-framework (ou reinstalação)
+```
+
+Sem `frameworkRepo` configurado, o orquestrador apresenta o diff do knowledge para você aplicar manualmente ao repo fonte (github.com/gustagpo/sdd-framework) — uma lição nunca deve existir só na cópia instalada.
+
 ## Higiene e auditoria
 
 - `/sdd-dashboard --learning` lista as lições por categoria e destaca candidatas a revisão (antigas, nunca referenciadas, possivelmente supersedidas).
