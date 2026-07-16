@@ -63,7 +63,8 @@ Contrato de entrega comum: a mensagem final de cada agente é (a) resumo ≤3 li
                              "participation": "always|auto|never" } },  // participation: só security/devops — "auto" segue os flags security_sensitive/infra_impact do SPEC
   "context":  { "alwaysRead": [...], "byAgent": { "<papel>": [...] }, "lessonsMode": "index|full" },
   "research": { "enabled": true, "docsDirs": [...], "openApiSpecs": [...], "webSearch": true },
-  "gates":    { "afterStep1": true, "afterStep2": true, "afterStep3": true },
+  "gates":    { "mode": "ask|supervised|autonomous", "afterStep1": true, "afterStep2": true, "afterStep3": true },
+              // mode "ask" (default) = o validador pergunta o modo no início de cada rodada; autonomous = sem paradas até o Gate Final (pré-Passo 7)
   "conventions": { "draftNaming": "drafts/{DOC}.{agent}.md", "contractConsolidator": "dev-backend", "evaluationConsolidator": "qa", "backendOnlyDesign": "skip", "maxFixIterations": 3 },
   "dashboard": { "enabled": true, "pricingOverrides": { "<model>": { "input": 5.0, "output": 25.0 } } }
 }
@@ -75,9 +76,9 @@ Um evento por linha; **nunca reescrever linhas** — atualizações chegam como 
 
 | type | Campos principais |
 |---|---|
-| `run_start` | `run_id`, `feature`, `started_at`, `models` |
+| `run_start` | `run_id`, `feature`, `started_at`, `gate_mode` (`supervised`/`autonomous`), `models` |
 | `agent_run` | `step`, `step_name`, `iteration`, `agent`, `subagent_type`, `model`, `model_requested`, `started_at`, `ended_at`, `status` (`completed`/`retried`/`failed`), `tokens{...source:"pending"}`, `summary`, `artifacts[]` |
-| `gate` | `step`, `approved`, `notes`, `at` |
+| `gate` | `step` (número, ou `"final"` para o Gate Final do modo autônomo), `approved`, `auto` (true = registrado sem parada, modo autônomo), `notes`, `at` |
 | `tokens_update` | `ref{step,agent,started_at,iteration}`, `model_resolved`, `tokens{...source:"transcript"|"unavailable"}`, `cost_usd_est`, `transcript` |
 | `run_end` | `ended_at`, `status` |
 

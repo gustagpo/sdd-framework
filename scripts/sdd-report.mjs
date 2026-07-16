@@ -126,7 +126,7 @@ function featureTable(runs, gates) {
   }
   const t = totals(runs);
   const gateStr = gates.length
-    ? gates.map((g) => `Gate ${g.step}: ${g.approved ? '✔' : '✖'}`).join(' · ')
+    ? gates.map((g) => `Gate ${g.step}: ${g.approved ? '✔' : '✖'}${g.auto ? '(auto)' : ''}`).join(' · ')
     : 'nenhum gate registrado';
   lines.push('');
   lines.push(
@@ -159,7 +159,8 @@ function featureReport(featureDir, write) {
   const feature = runStart?.feature || path.basename(featureDir);
   const maxStep = runs.length ? Math.max(...runs.map((r) => r.step)) : 0;
 
-  const header = `### Painel SDD — ${feature} · ${runEnd ? 'rodada concluída' : `até Passo ${maxStep}/7`}`;
+  const modeStr = runStart?.gate_mode ? ` · modo ${runStart.gate_mode === 'autonomous' ? 'autônomo' : 'supervisionado'}` : '';
+  const header = `### Painel SDD — ${feature} · ${runEnd ? 'rodada concluída' : `até Passo ${maxStep}/7`}${modeStr}`;
   const table = featureTable(runs, gates);
   const terminal = `${header}\n\n${table}`;
   console.log(terminal);
@@ -171,7 +172,7 @@ function featureReport(featureDir, write) {
       '',
       '> Gerado automaticamente por `sdd-report.mjs` a partir do `RUN.jsonl` — não editar manualmente.',
       '',
-      `**Run:** \`${runStart?.run_id || '—'}\` · **Início:** ${runStart?.started_at || '—'} · **Fim:** ${runEnd?.ended_at || 'em andamento'} · **Custo total estimado:** ${t.hasCost ? '~' + fmtCost(t.cost) : '—'}`,
+      `**Run:** \`${runStart?.run_id || '—'}\` · **Modo:** ${runStart?.gate_mode || '—'} · **Início:** ${runStart?.started_at || '—'} · **Fim:** ${runEnd?.ended_at || 'em andamento'} · **Custo total estimado:** ${t.hasCost ? '~' + fmtCost(t.cost) : '—'}`,
       '',
       '## Invocações',
       '',
@@ -184,7 +185,7 @@ function featureReport(featureDir, write) {
       '## Gates',
       '',
       gates.length
-        ? gates.map((g) => `- Passo ${g.step}: ${g.approved ? 'APROVADO' : 'AJUSTES SOLICITADOS'}${g.notes ? ` — ${g.notes}` : ''} (${g.at || ''})`).join('\n')
+        ? gates.map((g) => `- ${g.step === 'final' ? 'Gate Final' : `Passo ${g.step}`}: ${g.approved ? 'APROVADO' : 'AJUSTES SOLICITADOS'}${g.auto ? ' (automático — modo autônomo)' : ''}${g.notes ? ` — ${g.notes}` : ''} (${g.at || ''})`).join('\n')
         : '_nenhum gate registrado ainda_',
       '',
       '## Artefatos produzidos',

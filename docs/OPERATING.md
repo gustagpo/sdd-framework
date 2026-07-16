@@ -6,11 +6,11 @@ Guia do dia a dia para quem opera o fluxo. Pressupõe o plugin instalado e o pro
 
 ## Anatomia de uma rodada `/sdd`
 
-Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...]`
+Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...] [--gates supervised|autonomous]`
 
 | Passo | Quem | O que você vê / faz |
 |---|---|---|
-| **Preparação** | orquestrador | Confirma o nome da pasta, copia templates para `specs/features/<nome>/`, abre o `RUN.jsonl` e mostra a **estimativa de custo/duração** baseada no histórico (se houver) |
+| **Preparação** | orquestrador | Confirma o nome da pasta, **pergunta o modo de aprovação** (o validador — ver seção abaixo), copia templates para `specs/features/<nome>/`, abre o `RUN.jsonl` e mostra a **estimativa de custo/duração** baseada no histórico (se houver) |
 | **1 — Research + Spec** | Team Leader | Discovery profundo (código, docs locais, web) → `RESEARCH.md`; depois `SPEC.md` + `PROMPT.md`. **[Gate 1]**: você revisa o research (perguntas em aberto!) e a spec |
 | **2 — Design** | UX/UI | `DESIGN.md` com layout, componentes, estados de UI. Pulado por completo se a spec é `backend-only`. **[Gate 2]** |
 | **3 — Contract** | Devs + QA + Security + DevOps (paralelo) | Rascunhos em `drafts/` (Security traz o threat model + casos SEC-XXX; DevOps traz requisitos operacionais + casos OPS-XXX); Dev Backend consolida o `CONTRACT.md`. **[Gate 3]** |
@@ -20,6 +20,17 @@ Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...]`
 | **7 — Fechamento** | Team Leader | `RESUME.md`, `STATE.md`, **retrospectiva de aprendizado**; orquestrador mostra o painel final consolidado |
 
 Ao fim de **cada** passo o orquestrador imprime o painel parcial (agente, modelo, duração, tokens, custo estimado, gates) e regenera o `DASHBOARD.md` da feature.
+
+## Modos de aprovação (o validador)
+
+No início de cada rodada você escolhe como quer supervisionar (config `gates.mode`, default `"ask"` = perguntar sempre; `--gates` na chamada pula a pergunta):
+
+| Modo | Comportamento |
+|---|---|
+| **`supervised`** | Gates após Passos 1, 2 e 3 + confirmações após 4 e 5 — você acompanha e aprova etapa a etapa (comportamento clássico) |
+| **`autonomous`** | **Permissão total**: a rodada roda os 7 passos sem parar. Perguntas em aberto do research são decididas pelo Team Leader de forma conservadora e documentadas em "Decisões tomadas em autonomia". Toda a conferência acontece UMA vez, no **Gate Final** (entre os Passos 6 e 7): sumários de research/spec/contrato, decisões autônomas, veredito das 4 seções da avaliação, arquivos alterados e painel de custos. Você aprova (⇒ fechamento) ou pede ajustes (⇒ correção e novo Gate Final) |
+
+Segurança do modo autônomo: o limite de iterações de correção (`maxFixIterations`) continua valendo — se estourar, a rodada para e apresenta a situação; e o fechamento (STATE/lições/RESUME) **nunca** acontece sem a sua aprovação no Gate Final.
 
 ## Como agir em cada gate
 

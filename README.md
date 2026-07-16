@@ -6,7 +6,7 @@
 
 1. **Spec antes de código** — nenhuma feature é implementada sem `RESEARCH.md` + `SPEC.md` + `CONTRACT.md` aprovados. O Team Leader pesquisa a fundo (código, documentação local, web) antes de especificar.
 2. **Papéis exclusivos** — cada agente só faz a sua função: Dev não decide design, UX/UI não escreve código, QA não escreve código de produção, Team Leader não implementa, Security especifica e revisa (não corrige), DevOps cuida da infra (não do código de aplicação).
-3. **Gates humanos** — o usuário aprova explicitamente a spec, o design e o contrato antes de qualquer implementação.
+3. **Gates humanos configuráveis por rodada** — no início de cada rodada o validador pergunta: modo **supervisionado** (aprovação explícita da spec, do design e do contrato, etapa a etapa) ou modo **autônomo** (permissão total — os 7 passos rodam sem parar e a conferência acontece uma única vez no Gate Final, antes do fechamento).
 4. **TDD** — o QA escreve os testes antes de a feature existir; os Devs os fazem passar.
 5. **Multi-stack** — o núcleo (fluxo + standards DDD/SOLID/API) é agnóstico; cada projeto declara sua stack (NestJS, Next.js, Python/FastAPI, Spring Boot, ...) via perfil + `STACK.md`.
 6. **Aprendizado contínuo** — cada rodada gera lições classificadas (projeto/stack/processo). As de stack e processo ficam no plugin e propagam para todos os projetos que o usam.

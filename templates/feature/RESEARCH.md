@@ -70,6 +70,14 @@
 
 - [ ] [pergunta que só o usuário pode responder]
 
+## Decisões tomadas em autonomia (apenas rodadas em modo autônomo)
+
+> Preenchida quando a rodada roda sem gates: cada pergunta que o Team Leader decidiu sozinho, com a opção conservadora escolhida e o porquê. Revisadas no Gate Final.
+
+| Pergunta | Decisão | Justificativa |
+|---|---|---|
+| [pergunta] | [opção escolhida] | [por que é a mais conservadora/reversível] |
+
 ---
 
 ## Fontes consultadas

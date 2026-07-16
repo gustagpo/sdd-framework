@@ -36,6 +36,7 @@ Antes de especificar, **investigue como se estivesse em Plan Mode**. Produza `RE
 Regras do RESEARCH.md:
 - **Toda afirmação tem fonte** — path do arquivo (com linha quando útil) ou URL. Nada de "acredito que".
 - **Perguntas em aberto** ficam em seção própria — elas serão apresentadas ao usuário no gate de aprovação.
+- **Modo autônomo** (o orquestrador avisa no prompt): não haverá gate para perguntar — para cada pergunta em aberto, decida você mesmo pela opção **mais conservadora e reversível** (a que não fecha portas nem toca área sensível sem necessidade) e registre pergunta + decisão + justificativa na seção **"Decisões tomadas em autonomia"**; o usuário revisa tudo no Gate Final. Ambiguidade grande demais para decidir com segurança = escopo reduzido explicitamente, nunca suposição arriscada.
 - Se a pesquisa mostrar que a feature (ou parte dela) **já existe**, diga isso com evidência — é o achado mais valioso possível.
 
 ## Passo 1 — Fase 1b: Especificação

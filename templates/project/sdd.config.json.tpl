@@ -72,6 +72,7 @@
     "webSearch": true
   },
   "gates": {
+    "mode": "ask",
     "afterStep1": true,
     "afterStep2": true,
     "afterStep3": true
