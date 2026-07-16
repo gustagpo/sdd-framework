@@ -1,0 +1,14 @@
+{
+  "name": "sdd-framework",
+  "description": "Marketplace do SDD Framework — Spec-Driven Design multi-agente para Claude Code",
+  "owner": {
+    "name": "Gustavo Peixoto"
+  },
+  "plugins": [
+    {
+      "name": "sdd-framework",
+      "source": "./",
+      "description": "Spec-Driven Design multi-agente com painel de custos e aprendizado contínuo"
+    }
+  ]
+}
