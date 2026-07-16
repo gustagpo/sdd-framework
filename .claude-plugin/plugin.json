@@ -5,5 +5,7 @@
   "author": {
     "name": "Gustavo Peixoto"
   },
+  "homepage": "https://github.com/gustagpo/sdd-framework",
+  "repository": "https://github.com/gustagpo/sdd-framework",
   "keywords": ["sdd", "spec-driven-design", "orchestration", "multi-agent", "ddd", "solid"]
 }

@@ -14,11 +14,12 @@
 ## Quickstart (5 passos)
 
 ```bash
-# 1. Adicione o marketplace (path local ou repo GitHub)
-claude plugin marketplace add /caminho/para/sdd-framework
+# 1. Adicione o marketplace (repo GitHub; path local também funciona para desenvolvimento)
+claude plugin marketplace add gustagpo/sdd-framework
 
-# 2. Instale o plugin no projeto
+# 2. Instale o plugin no projeto (e habilite, se necessário)
 claude plugin install sdd-framework@sdd-framework --scope project
+claude plugin enable sdd-framework@sdd-framework --scope project
 ```
 
 ```text
