@@ -27,6 +27,10 @@ Dentro do projeto, rode `/sdd-init`. Ele:
 
 Rodar `/sdd-init` de novo a qualquer momento reabre o gate para reconfigurar.
 
+## 2b. (Opcional, recomendado) Configure o deploy — `/sdd-deploy`
+
+O agente DevOps faz o discovery da infra atual, planeja o deploy com você (alvo: VPS/compose, cloud, k8s...; domínios/TLS, ambientes, CI/CD, secrets) e gera as configurações — Dockerfile, docker-compose, Nginx, Terraform, pipeline — validando o que der localmente. O resultado é o `specs/DEPLOY.md`, que passa a informar todas as rodadas. **Ele prepara e valida; nunca executa deploy/apply real — isso é sempre seu.**
+
 ## 3. Entenda as 3 decisões de cada rodada (Gate Inicial)
 
 Toda rodada `/sdd` começa com UMA parada de configuração (o que estiver fixado no config não é perguntado):

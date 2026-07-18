@@ -76,6 +76,12 @@ Concedida no Gate Inicial ⇒ os agentes recebem a cláusula "leia/crie/edite se
 - **Por rodada**: `/sdd minha-feature "..." --model team-leader=opus,qa=sonnet` — vale só para a rodada.
 - O modelo **efetivamente usado** fica registrado por invocação no RUN.jsonl e aparece nos painéis e no RESUME.md.
 
+## /sdd-deploy — planejar e configurar o deploy do projeto
+
+Fluxo em 4 fases com o agente DevOps: **Discovery** (estado atual: Docker/nginx/Terraform/CI) → **Entrevista+Plano** (alvo, ambientes, TLS, secrets ⇒ `specs/DEPLOY.md`, com **gate de aprovação** antes de tocar em qualquer arquivo) → **Implementação assistida** (gera/ajusta Dockerfile, compose, nginx, Terraform, pipeline, `.env.example` — seguindo os checklists DKR/NGX/TF/CI de `standards/infra/`) → **Validação local** (`docker build`, `nginx -t`, `terraform validate`... pulando o que a máquina não tem) + próximos passos manuais numerados.
+
+**Fronteira de segurança**: o comando prepara e valida — NUNCA executa `terraform apply`, provisionamento, `docker push`, deploy real, DNS ou secrets de provedor. Telemetria/painel ao vivo funcionam como nas rodadas (`specs/deploy/`). Com o `DEPLOY.md` existente, as rodadas `/sdd` passam a planejar OPS-XXX contra a topologia real.
+
 ## Lendo os painéis
 
 - **Terminal (por passo)**: tabela por invocação + parciais. `—` em tokens/custo = telemetria indisponível para aquela invocação (ver troubleshooting).

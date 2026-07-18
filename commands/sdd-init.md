@@ -62,6 +62,7 @@ Apender `templates/project/CLAUDE-snippet.md` ao `CLAUDE.md` do projeto (criar s
 1. Valide o `sdd.config.json` (`node -e "JSON.parse(...)"`).
 2. Apresente: arquivos gerados, config resolvida, placeholders pendentes no STACK.md, alertas de peso de docs (Passo 0) e os **próximos passos**:
    - `/sdd <feature> "<descrição>"` para a primeira rodada (o Gate Inicial da rodada pergunta modo/fases/autonomia)
+   - `/sdd-deploy` (opcional, recomendado) — o agente DevOps planeja o deploy do projeto com você e gera as configurações (Docker, Nginx, Terraform, CI/CD), produzindo o `specs/DEPLOY.md`
    - comando do painel ao vivo (`sdd-live.mjs`) para acompanhar em outro terminal
    - `/sdd-dashboard` para custos; `docs/ONBOARDING.md` do plugin para o guia completo
 

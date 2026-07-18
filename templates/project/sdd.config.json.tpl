@@ -61,7 +61,7 @@
       "dev-frontend": ["specs/ARCHITECTURE.md", "specs/LESSONS.md"],
       "qa": ["specs/TESTS.md", "specs/LESSONS.md"],
       "security": ["specs/LESSONS.md"],
-      "devops": ["specs/ARCHITECTURE.md", "specs/TESTS.md"]
+      "devops": ["specs/ARCHITECTURE.md", "specs/TESTS.md", "specs/DEPLOY.md"]
     },
     "lessonsMode": "index"
   },

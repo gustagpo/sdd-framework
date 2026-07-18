@@ -40,9 +40,9 @@ Nem todo projeto quer as 7 fases sempre: presets `full`, `lite` (enxuto) e `spec
 
 | Diretório | Conteúdo |
 |---|---|
-| `commands/` | `/sdd` (orquestrador de 7 passos), `/sdd-init` (bootstrap/adoção), `/sdd-dashboard` (custos/histórico) |
+| `commands/` | `/sdd` (orquestrador), `/sdd-init` (bootstrap/adoção), `/sdd-deploy` (DevOps planeja e configura o deploy: Docker/Nginx/Terraform/CI-CD), `/sdd-dashboard` (custos/histórico) |
 | `agents/` | 7 subagents genéricos (`sdd-team-leader`, `sdd-ux-ui`, `sdd-dev-backend`, `sdd-dev-frontend`, `sdd-qa`, `sdd-security`, `sdd-devops`) |
-| `standards/` | DDD.md, SOLID.md, API.md, SECURITY.md, OPS.md (núcleo) + `stacks/` (nestjs, nextjs, python-fastapi, spring-boot) |
+| `standards/` | DDD, SOLID, API, SECURITY, OPS (núcleo) + `stacks/` (nestjs, nextjs, python-fastapi, spring-boot) + `infra/` (docker, nginx, terraform, ci-cd) |
 | `templates/` | Templates dos documentos de feature (RESEARCH/SPEC/PROMPT/DESIGN/CONTRACT/EVALUATION/RESUME) e de projeto (STACK, config, docs vivos) |
 | `scripts/` | Telemetria determinística: `sdd-tokens.mjs` (tokens/custo dos transcripts), `sdd-report.mjs` (painéis), `pricing.json` |
 | `knowledge/` | Base de conhecimento entre projetos: lições de processo, lições por stack, índice de rodadas |

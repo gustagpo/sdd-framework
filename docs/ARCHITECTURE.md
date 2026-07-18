@@ -8,9 +8,10 @@ Como o framework funciona por dentro. Leitura para quem vai mantê-lo ou estend�
 
 ```
 ┌────────────────────────────  Plugin (este repo, versionado)  ───────────────────────────┐
-│ commands/sdd.md  ── orquestra ──► Agent(subagent_type: sdd-*, model: <config>)          │
+│ commands/ ── sdd (orquestrador) · sdd-init · sdd-deploy (DevOps: deploy do projeto) ·   │
+│              sdd-dashboard ── invocam ─► Agent(subagent_type: sdd-*, name: label)       │
 │ agents/sdd-*.md  ── identidades genéricas (frontmatter: name/description/model/tools)   │
-│ standards/ ── DDD/SOLID/API + stacks/<perfil> (como os princípios viram código)         │
+│ standards/ ── DDD/SOLID/API/SECURITY/OPS + stacks/<perfil> + infra/ (docker/nginx/tf/ci)│
 │ templates/ ── documentos de feature e de projeto                                        │
 │ scripts/   ── telemetria determinística (tokens, custo, painéis)                        │
 │ knowledge/ ── lições entre projetos + runs-index.jsonl (calibração)                     │

@@ -61,7 +61,7 @@ Para CADA invocação, com `LABEL = sdd-<papel>-p<passo>i<iter>-<6 últimos char
        + "\n\nAUTONOMIA: a autorização de arquivos foi concedida no gate inicial desta rodada. Dentro do escopo da sua tarefa, leia/crie/edite arquivos SEM pedir confirmação — NUNCA pergunte 'posso modificar X?'; execute e reporte. Gates existem ENTRE fases; dentro da fase, trabalhe sem interrupção."
        + "\n\nLeia OBRIGATORIAMENTE (precedência: projeto > knowledge > perfil de stack > standards genéricos): "
        + STACK.md + context.byAgent[papel] + knowledge (INDEX + arquivos do papel/stack) + standards do papel
-         (dev-backend→DDD,SOLID,API,stacks/<be> · dev-frontend→SOLID,API,stacks/<fe ou be> · qa→API,stacks/<be> · security→SECURITY,API · devops→OPS,stacks/<be> · team-leader/ux-ui→só projeto+knowledge)
+         (dev-backend→DDD,SOLID,API,stacks/<be> · dev-frontend→SOLID,API,stacks/<fe ou be> · qa→API,stacks/<be> · security→SECURITY,API · devops→OPS,stacks/<be>,+specs/DEPLOY.md se existir · team-leader/ux-ui→só projeto+knowledge)
        + "\nEconomia de contexto: em docs grandes use Grep/seções (head) antes de Read inteiro; do STATE.md leia SÓ o Roadmap e as últimas ~10 entradas; LESSONS pelo índice."
        + "\n\nComandos do projeto (use exatamente): " + config.commands relevantes
        + "\nArtefatos da feature já produzidos (paths, nunca conteúdo inline): ..."

@@ -61,6 +61,7 @@ specs/features/<nome>/
 
 ## Painéis e custo
 
+- **Deploy do projeto**: `/sdd-deploy` — o DevOps planeja com você e gera as configurações (Docker, Nginx, Terraform, CI/CD) em cima do `specs/DEPLOY.md`; prepara e valida, nunca executa deploy real.
 - **Ao vivo**: o orquestrador imprime no início da rodada o comando do `sdd-live.mjs` — rode em outro terminal para ver agentes em execução, tokens e custo em tempo real.
 - **Por feature**: `DASHBOARD.md` regenerado a cada passo. **Agregado**: `/sdd-dashboard`.
 - Custos são **estimativas** por tabela de preços.
