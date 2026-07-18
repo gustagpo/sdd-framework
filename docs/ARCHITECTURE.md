@@ -93,6 +93,7 @@ Chave de correlação de um `agent_run`: `(step, agent, started_at)`. **Correla�
 - **`sdd-log.mjs`** — appender de eventos do RUN.jsonl por flags (run_id/timestamps automáticos; agent_run herda started_at do agent_start).
 - **`sdd-sync.mjs`** — wrapper único por passo: tokens → report → DASHBOARD → painel no stdout (best-effort).
 - **`sdd-live.mjs`** — painel ao vivo para outro terminal: re-render a cada 2s, matcher de tokens a cada 10s, encerra no run_end (`--once` para render único).
+- **`sdd-version-check.mjs`** — aviso de versão nova (raw do GitHub via `repository` do manifest; cache 24h; notify-only, nunca atualiza).
 - **`sdd-report.mjs`** — consolida o RUN.jsonl e gera: painel da feature (`--feature`, `--write` ⇒ DASHBOARD.md com tabela + mermaid + gates + artefatos), agregado do projeto (`--aggregate`), linha do índice global (`--append-run-index`) e estimativa por histórico (`--estimate`). Toda aritmética é feita aqui — o LLM só apresenta a saída.
 - Fragilidade conhecida: o formato dos transcripts é interno do Claude Code e pode mudar entre versões — por isso o fallback `unavailable` nunca quebra o fluxo.
 

@@ -88,6 +88,9 @@
     "backendOnlyDesign": "skip",
     "maxFixIterations": 3
   },
+  "updates": {
+    "check": true
+  },
   "dashboard": {
     "enabled": true,
     "pricingOverrides": {}

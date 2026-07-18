@@ -101,6 +101,17 @@ Fluxo em 4 fases com o agente DevOps: **Discovery** (estado atual: Docker/nginx/
 | Rodada interrompida no meio | sessão caiu / abort | Rode `/sdd` de novo com o mesmo nome de feature: os documentos já aprovados são reaproveitados; o orquestrador continua do primeiro passo sem artefato |
 | Feature antiga "sem telemetria" no dashboard | Anterior ao framework | Esperado — só rodadas novas geram RUN.jsonl |
 
+## Atualizações do framework
+
+O `/sdd`, o `/sdd-init` e o `/sdd-dashboard` verificam (no máx. 1×/dia, com timeout de 3s e silêncio em falha/offline) se há versão nova do plugin no repositório de origem e **apenas avisam**:
+
+```
+[sdd] 🔔 Nova versão do SDD Framework disponível: vA.B.C (instalada: vX.Y.Z). Para atualizar:
+      claude plugin marketplace update sdd-framework && claude plugin update sdd-framework@sdd-framework --scope project
+```
+
+Atualizar é SEMPRE decisão do usuário (nunca automático; reinicie a sessão depois). Opt-out por projeto: `"updates": { "check": false }` no `sdd.config.json`. Verificação manual: `node <plugin>/scripts/sdd-version-check.mjs --force`.
+
 ## Boas práticas
 
 - Descrições de feature ricas no `/sdd` (contexto + para quem + restrições) reduzem perguntas no Gate 1.

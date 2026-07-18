@@ -42,6 +42,7 @@ Exemplo: `/sdd cancelamento-contrato "Permitir cancelar um contrato liberando re
    node ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-live.mjs --feature specs/features/<nome> --project-dir "<cwd>"
    ```
 8. **Estimativa histórica** (best-effort): `node ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-report.mjs --estimate --index ${CLAUDE_PLUGIN_ROOT}/knowledge/runs-index.jsonl`.
+9. **Aviso de atualização** (best-effort; pule se `updates.check === false` na config): `node ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-version-check.mjs` — se houver versão nova, reproduza o aviso UMA vez. **Informativo apenas: NUNCA execute a atualização automaticamente** — os comandos de update são sempre do usuário.
 
 ### Como invocar um agente (padrão único)
 

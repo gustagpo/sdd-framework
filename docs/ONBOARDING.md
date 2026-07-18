@@ -71,6 +71,7 @@ Você verá em tempo real: agentes em execução (com elapsed), tokens e custo p
 | Custos com `—` | Rode `/sdd-dashboard --feature <nome>` depois da rodada (o matcher re-tenta); confira se o Node está no PATH |
 | Sessão estourando contexto | Uma feature por sessão (regra do orquestrador); confira os alertas de peso de docs do `/sdd-init` |
 | Agentes pedindo confirmação para editar | Conceda a autonomia de arquivos no Gate Inicial (ou rode a sessão com `claude --permission-mode acceptEdits`) |
+| Quero saber se há versão nova | O framework avisa sozinho (1×/dia) no /sdd, /sdd-init e /sdd-dashboard; manual: `node <plugin>/scripts/sdd-version-check.mjs --force` |
 | Rodada interrompida | Rode `/sdd` de novo com o mesmo nome em sessão nova — documentos aprovados são reaproveitados |
 
 Guia completo de operação: [OPERATING.md](OPERATING.md).

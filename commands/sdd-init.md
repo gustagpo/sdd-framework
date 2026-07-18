@@ -11,7 +11,8 @@ Você configura (ou adota) um repositório para rodar o fluxo SDD. Ao final, o p
 Cheque e reporte (sem parar por avisos):
 1. `node --version` disponível (os scripts de telemetria/painel dependem dele; sem node, o fluxo roda mas sem custos/live — avise).
 2. Plugin acessível: `${CLAUDE_PLUGIN_ROOT}/scripts/sdd-log.mjs` existe.
-3. **Peso dos docs do projeto** (impacta TODO agente em TODA rodada): meça `CLAUDE.md`, `specs/STATE.md`, `specs/LESSONS.md` se existirem. Qualquer um **>40KB** ⇒ alerte com o custo real ("este arquivo é carregado em cada invocação de cada agente — em uma rodada de ~25 invocações, são ~25× o arquivo em contexto") e sugira mover detalhe enciclopédico para arquivos referenciados. Não modifique nada sem pedido.
+3. **Aviso de atualização** (best-effort): `node ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-version-check.mjs` — se houver versão nova, mostre o aviso (informativo; nunca atualize automaticamente).
+4. **Peso dos docs do projeto** (impacta TODO agente em TODA rodada): meça `CLAUDE.md`, `specs/STATE.md`, `specs/LESSONS.md` se existirem. Qualquer um **>40KB** ⇒ alerte com o custo real ("este arquivo é carregado em cada invocação de cada agente — em uma rodada de ~25 invocações, são ~25× o arquivo em contexto") e sugira mover detalhe enciclopédico para arquivos referenciados. Não modifique nada sem pedido.
 
 ## Passo 1 — Detectar a stack e o estado do projeto
 
