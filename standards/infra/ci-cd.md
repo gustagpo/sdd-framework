@@ -12,6 +12,8 @@ Padrão de pipeline que o agente DevOps aplica ao gerar ou ajustar workflows de 
 6. **Deploy tem estratégia e volta.** Rolling/blue-green/substituição é uma escolha declarada, com rollback documentado E testado — reverter não pode ser descoberto durante o incidente.
 7. **Rápido e idempotente.** Cache de dependências mantém o feedback curto; todo job pode ser re-executado com segurança (re-run não duplica release nem corrompe estado).
 8. **Menor privilégio e portão de branch.** Credencial de deploy tem só o escopo necessário; `main` é protegida, deployável, e exige checks verdes + PR.
+9. **Verde significa verde.** Nenhum teste é pulado, silenciado ou marcado `continue-on-error` para "passar o pipeline". Teste flaky vira issue investigada, não exceção tolerada — um gate que mente é pior que gate nenhum.
+10. **Deploy é rastreável.** Cada publicação registra quem disparou, qual versão/digest subiu e quando — base para auditoria, correlação com incidentes e decisão de rollback informada.
 
 ## Regras verificáveis
 
@@ -28,6 +30,8 @@ Padrão de pipeline que o agente DevOps aplica ao gerar ou ajustar workflows de 
 - [ ] CI-11: Jobs são idempotentes — re-run seguro (release/tag/deploy não duplica nem corrompe; usa `IF NOT EXISTS`/checagem de idempotência onde aplicável)
 - [ ] CI-12: Tempo de pipeline monitorado (visível/alertável) para garantir feedback rápido
 - [ ] CI-13: Credencial de deploy com menor privilégio (escopo mínimo, idealmente OIDC/role temporária em vez de chave longeva)
+- [ ] CI-14: Nenhum teste pulado/`continue-on-error` para forçar verde; suíte flaky é tratada como issue, não mascarada
+- [ ] CI-15: Cada deploy é rastreável (autor, versão/digest, timestamp) em log/registro consultável
 
 ## Antipadrões
 
@@ -41,6 +45,8 @@ Padrão de pipeline que o agente DevOps aplica ao gerar ou ajustar workflows de 
 | Deploy sem smoke test | Publica quebrado e ninguém percebe até o cliente | Smoke test pós-deploy que falha o deploy (CI-09) |
 | Job de release não idempotente | Re-run duplica tag/release/cobrança | Guardas de idempotência; re-run seguro (CI-11) |
 | Chave de admin longeva como credencial de deploy | Um vazamento compromete tudo, para sempre | Menor privilégio, OIDC/role temporária (CI-13) |
+| `continue-on-error` / teste pulado para "ficar verde" | Gate mente; bug real passa despercebido | Verde honesto; flaky vira issue (CI-14) |
+| Deploy sem registro de quem/o quê/quando | Impossível auditar ou correlacionar com incidente | Rastreabilidade por autor/digest/timestamp (CI-15) |
 
 ## Exemplo esquemático (estágios + gate)
 

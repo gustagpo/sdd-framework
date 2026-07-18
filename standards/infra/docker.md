@@ -10,8 +10,10 @@ Padrão de containerização que o agente DevOps aplica ao gerar ou ajustar `Doc
 4. **Segredo nunca vira camada.** `ENV`/`ARG` declaram configuração não-sensível e pontos de injeção; segredo entra em runtime (env de deploy, secret manager, montagem), nunca gravado na imagem — camadas são recuperáveis por qualquer um com a imagem.
 5. **Cache é projetado.** Copie o manifesto de dependências (lockfile) e instale antes de copiar o código. Mudança de código não deve invalidar a camada de dependências. Ordene do menos volátil para o mais volátil.
 6. **Imagem observável e autossuficiente.** `HEALTHCHECK` declara vivo≠pronto; logs vão para stdout/stderr (o coletor do orquestrador recolhe), nunca para arquivo dentro do container.
-7. **Build reproduzível e promovido.** A mesma imagem construída uma vez no CI é promovida entre ambientes por digest/tag imutável — não se reconstrói por ambiente (ver [`ci-cd.md`](ci-cd.md) CI-02).
+7. **Build reproduzível e promovido.** A mesma imagem construída uma vez no CI é promovida entre ambientes por digest/tag imutável — não se reconstrói por ambiente (ver [`ci-cd.md`](ci-cd.md) CI-02). Dependências travadas por lockfile committado; o build não puxa "a versão mais recente" no meio do pipeline.
 8. **Compose declara tudo.** Variáveis por `env_file`/bloco declarado, volumes nomeados para dados, redes explícitas, política de restart e nenhuma porta de dado exposta ao host público.
+9. **Um processo, uma responsabilidade.** Cada container roda um serviço; não empacote app + banco + proxy no mesmo container. Orquestração e ciclo de vida ficam a cargo do compose/orquestrador, não de um `supervisord` improvisado dentro da imagem.
+10. **Superfície mínima no runtime.** A imagem de produção não carrega shell extra, gerenciador de pacotes ativo, ferramentas de debug ou credencial temporária de build — cada binário a mais é vetor de ataque e byte de deploy.
 
 ## Regras verificáveis
 
@@ -28,6 +30,8 @@ Padrão de containerização que o agente DevOps aplica ao gerar ou ajustar `Doc
 - [ ] DKR-11: Dados persistentes usam volumes nomeados; redes são explícitas; serviços de banco/cache NÃO publicam porta no host público (sem `ports:` externo — só rede interna)
 - [ ] DKR-12: Todo serviço de longa duração define `restart: unless-stopped` (ou política equivalente do orquestrador)
 - [ ] DKR-13: Imagem construída no CI e promovida por digest/tag entre ambientes — não há `build` reexecutado por ambiente em produção
+- [ ] DKR-14: Cada container roda um único serviço; não há processos empacotados juntos via `supervisord`/script de init caseiro
+- [ ] DKR-15: Runtime enxuto — sem ferramentas de debug, credencial de build ou pacotes desnecessários na imagem final; `.env` local jamais copiado para dentro
 
 ## Antipadrões
 
@@ -41,6 +45,8 @@ Padrão de containerização que o agente DevOps aplica ao gerar ou ajustar `Doc
 | Log em arquivo dentro do container | Some no restart; coletor não enxerga | stdout/stderr, coletor do orquestrador recolhe (DKR-09) |
 | `ports: 5432:5432` do Postgres no compose | Banco exposto na internet do host | Só rede interna; sem publicar porta de dado (DKR-11) |
 | `docker build` em cada ambiente | Artefatos divergentes; "funciona em staging, quebra em prod" | Construir uma vez, promover a mesma imagem (DKR-13) |
+| App + banco + cron no mesmo container | Escala e ciclo de vida acoplados; restart derruba tudo junto | Um serviço por container; orquestrar no compose (DKR-14) |
+| Imagem "cheia" com `curl`, `vim`, build-essential | Superfície de ataque e tamanho inflados no runtime | Runtime mínimo; ferramentas só no estágio de build (DKR-15) |
 
 ## Exemplo esquemático (multi-stage)
 

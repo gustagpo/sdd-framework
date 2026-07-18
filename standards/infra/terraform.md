@@ -12,6 +12,8 @@ Padrão de infraestrutura como código que o agente DevOps aplica ao gerar ou aj
 6. **Providers e core pinados.** `required_version` do Terraform e `required_providers` com versão travada — upgrade de provider é mudança deliberada, não surpresa no próximo `init`.
 7. **Naming e tags padronizados.** Todo recurso carrega convenção de nome e tags mínimas (projeto, ambiente, owner) — base de custo, rastreio e limpeza.
 8. **Formatado, validado e protegido.** `fmt` e `validate` no CI; recursos críticos (banco de produção, bucket de state) com `prevent_destroy`. Ambientes isolados por workspace OU por diretório — escolha uma e documente.
+9. **Recurso existente se importa, não se recria.** Infra provisionada antes do IaC entra no state via `import` — declarar por cima gera duplicata e conflito. O objetivo é que o code descreva a realidade, não uma segunda cópia dela.
+10. **Drift é detectado, não descoberto no incidente.** Um `plan` periódico revela mudança manual feita fora do Terraform; o code é a fonte da verdade e divergência silenciosa é dívida operacional.
 
 ## Regras verificáveis
 
@@ -27,6 +29,8 @@ Padrão de infraestrutura como código que o agente DevOps aplica ao gerar ou aj
 - [ ] TF-10: `outputs` mínimos e úteis (o que outro módulo/consumidor realmente precisa); sem despejar recurso inteiro
 - [ ] TF-11: Recursos críticos (banco/bucket de state/dados de produção) com `lifecycle { prevent_destroy = true }`
 - [ ] TF-12: `terraform init` reproduzível — `.terraform.lock.hcl` commitado para travar os hashes dos providers
+- [ ] TF-13: Infra pré-existente é trazida ao state via `import` (documentado), nunca redeclarada como recurso novo duplicado
+- [ ] TF-14: Há um mecanismo de detecção de drift (`plan` periódico/agendado) e o procedimento para reconciliar mudanças manuais está definido
 
 ## Antipadrões
 
@@ -40,6 +44,8 @@ Padrão de infraestrutura como código que o agente DevOps aplica ao gerar ou aj
 | Módulo monolito de 800 linhas | Impossível revisar; blast radius enorme | Módulos pequenos, responsabilidade única (TF-05) |
 | Recurso sem tags | Custo não rastreável; ninguém sabe o dono | Naming + tags padrão em todo recurso (TF-07) |
 | Banco de produção sem `prevent_destroy` | Um `destroy` errado apaga dados irrecuperáveis | `lifecycle { prevent_destroy = true }` (TF-11) |
+| Redeclarar recurso que já existe no provedor | Duplicata/conflito; `apply` tenta criar o que já está lá | `terraform import` para o state (TF-13) |
+| Mudança feita "só dessa vez" no console | State e realidade divergem; próximo `apply` reverte ou quebra | Detectar drift e reconciliar via code (TF-14) |
 
 ## Exemplo esquemático (pin + variável + proteção)
 

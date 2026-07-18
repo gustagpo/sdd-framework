@@ -12,6 +12,8 @@ Padrão de configuração de reverse proxy e serving que o agente DevOps aplica 
 6. **Estático é servido pelo Nginx, dinâmico vai ao upstream.** SPA resolve rota no cliente (`try_files → index.html`) com cache em assets versionados; API é `proxy_pass`. Nginx não deve proxiar o que pode servir do disco.
 7. **WebSocket faz upgrade explícito.** Onde há WS/SSE, os headers `Upgrade`/`Connection` são propagados — senão a conexão cai no handshake.
 8. **Log serve para operar.** O formato inclui `upstream_response_time` (e status do upstream) para separar latência da app da latência de rede.
+9. **Nunca recarrega às cegas.** `nginx -t` valida a sintaxe antes de todo `reload`; um `server` block quebrado jamais chega a derrubar o proxy que está no ar.
+10. **Erro não vira vitrine.** Páginas de erro e respostas de upstream indisponível não expõem versão, caminho interno ou stack; o cliente vê uma resposta controlada, não o mapa da infraestrutura.
 
 ## Regras verificáveis
 
@@ -29,6 +31,8 @@ Padrão de configuração de reverse proxy e serving que o agente DevOps aplica 
 - [ ] NGX-12: SPA usa `try_files $uri $uri/ /index.html`; assets versionados com `Cache-Control` longo (`immutable`); `index.html` sem cache agressivo
 - [ ] NGX-13: WebSocket/SSE (quando aplicável) propaga `Upgrade` e `Connection` no `location` correspondente
 - [ ] NGX-14: `log_format` inclui `$upstream_response_time` (e `$upstream_status`) e é aplicado no `access_log`
+- [ ] NGX-15: Toda alteração é validada com `nginx -t` antes do `reload`; o fluxo de deploy do proxy inclui esse passo
+- [ ] NGX-16: Respostas de erro (4xx/5xx e upstream indisponível) não expõem versão/stack/caminho interno; `error_page` controlado quando aplicável
 
 ## Antipadrões
 
@@ -42,6 +46,8 @@ Padrão de configuração de reverse proxy e serving que o agente DevOps aplica 
 | Proxiar o SPA inteiro pelo Node | Node vira servidor de arquivo estático; desperdício e lentidão | Nginx serve estático; só API vai ao upstream (NGX-12) |
 | Login sem rate limit | Brute-force e enumeração de credenciais livres | `limit_req` na zona de auth (NGX-10) |
 | `client_max_body_size` no default | Upload legítimo estoura em 413 silencioso | Dimensionar ao maior upload real (NGX-08) |
+| `reload` sem `nginx -t` antes | Config quebrada derruba o proxy no ar | Validar sintaxe antes de recarregar (NGX-15) |
+| Página de erro com stack/versão do backend | Entrega reconhecimento de graça ao atacante | `error_page` controlado, sem vazar interno (NGX-16) |
 
 ## Exemplo esquemático (server block)
 
