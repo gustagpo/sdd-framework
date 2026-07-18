@@ -220,22 +220,27 @@ function main() {
   for (const ev of pending) {
     const start = Date.parse(ev.started_at) - MARGIN_MS;
     const end = ev.ended_at ? Date.parse(ev.ended_at) + MARGIN_MS : Date.now() + MARGIN_MS;
-    // candidatos: agentType casa com subagent_type do evento (quando meta existe)
-    const candidates = transcripts.filter((t) => {
-      if (claimed.has(t.file)) return false;
-      if (t.meta?.agentType && ev.subagent_type && t.meta.agentType !== ev.subagent_type) return false;
-      return true;
-    });
 
-    let best = null;
-    for (const c of candidates) {
-      if (!summaries.has(c.file)) summaries.set(c.file, summarizeTranscript(c.file));
-      const s = summaries.get(c.file);
-      if (s.firstTs === null) continue;
-      // o transcript precisa estar contido na janela do evento
-      if (s.firstTs >= start && s.firstTs <= end && s.lastTs <= end) {
-        if (!best || Math.abs(s.firstTs - (start + MARGIN_MS)) < Math.abs(summaries.get(best.file).firstTs - (start + MARGIN_MS))) {
-          best = c;
+    // 1) MATCH DETERMINÍSTICO por label: o orquestrador nomeia cada invocação
+    //    (param `name` do Agent) e o meta.json grava esse nome em agentType.
+    let best =
+      (ev.agent_label &&
+        transcripts.find((t) => !claimed.has(t.file) && t.meta?.agentType === ev.agent_label)) ||
+      null;
+    if (best && !summaries.has(best.file)) summaries.set(best.file, summarizeTranscript(best.file));
+
+    // 2) Fallback (rodadas legadas sem label): janela de tempo, SEM exigir agentType —
+    //    agentTypes reais são rótulos livres (ex.: "tl-passo1") e nunca casariam com o papel.
+    if (!best) {
+      const candidates = transcripts.filter((t) => !claimed.has(t.file));
+      for (const c of candidates) {
+        if (!summaries.has(c.file)) summaries.set(c.file, summarizeTranscript(c.file));
+        const s = summaries.get(c.file);
+        if (s.firstTs === null) continue;
+        if (s.firstTs >= start && s.firstTs <= end && s.lastTs <= end) {
+          if (!best || Math.abs(s.firstTs - (start + MARGIN_MS)) < Math.abs(summaries.get(best.file).firstTs - (start + MARGIN_MS))) {
+            best = c;
+          }
         }
       }
     }

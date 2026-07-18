@@ -64,6 +64,7 @@ Contrato de entrega comum: a mensagem final de cada agente é (a) resumo ≤3 li
   "context":  { "alwaysRead": [...], "byAgent": { "<papel>": [...] }, "lessonsMode": "index|full" },
   "research": { "enabled": true, "docsDirs": [...], "openApiSpecs": [...], "webSearch": true },
   "gates":    { "mode": "ask|supervised|autonomous", "afterStep1": true, "afterStep2": true, "afterStep3": true },
+  "phases":   { "mode": "ask|full|lite|spec-only|custom", "skip": [] },   // presets de fases; escolhidos no Gate Inicial quando "ask"
               // mode "ask" (default) = o validador pergunta o modo no início de cada rodada; autonomous = sem paradas até o Gate Final (pré-Passo 7)
   "conventions": { "draftNaming": "drafts/{DOC}.{agent}.md", "contractConsolidator": "dev-backend", "evaluationConsolidator": "qa", "backendOnlyDesign": "skip", "maxFixIterations": 3 },
   "dashboard": { "enabled": true, "pricingOverrides": { "<model>": { "input": 5.0, "output": 25.0 } } }
@@ -76,23 +77,27 @@ Um evento por linha; **nunca reescrever linhas** — atualizações chegam como 
 
 | type | Campos principais |
 |---|---|
-| `run_start` | `run_id`, `feature`, `started_at`, `gate_mode` (`supervised`/`autonomous`), `models` |
+| `run_start` | `run_id`, `feature`, `started_at`, `gate_mode`, `phases` (`{mode, skip}`), `file_autonomy`, `models` |
+| `agent_start` | `step`, `iteration`, `agent`, `agent_label`, `model`, `at` — emitido ANTES da invocação (alimenta o painel ao vivo; sem agent_run correspondente = "em execução") |
 | `agent_run` | `step`, `step_name`, `iteration`, `agent`, `subagent_type`, `model`, `model_requested`, `started_at`, `ended_at`, `status` (`completed`/`retried`/`failed`), `tokens{...source:"pending"}`, `summary`, `artifacts[]` |
 | `gate` | `step` (número, ou `"final"` para o Gate Final do modo autônomo), `approved`, `auto` (true = registrado sem parada, modo autônomo), `notes`, `at` |
 | `tokens_update` | `ref{step,agent,started_at,iteration}`, `model_resolved`, `tokens{...source:"transcript"|"unavailable"}`, `cost_usd_est`, `transcript` |
 | `run_end` | `ended_at`, `status` |
 
-Chave de correlação de um `agent_run`: `(step, agent, started_at)`.
+Chave de correlação de um `agent_run`: `(step, agent, started_at)`. **Correlação de tokens**: o orquestrador nomeia cada invocação com `agent_label` (`sdd-<papel>-p<passo>i<iter>-<sufixo>`, passado como `name` do Agent) — o meta.json do transcript grava esse nome em `agentType`, e o matcher casa por igualdade exata (fallback legado: janela de tempo). Eventos são gravados SEMPRE via `sdd-log.mjs` (nunca JSON manual no shell).
 
 ## Telemetria (`scripts/`)
 
 - **`sdd-tokens.mjs`** — para cada `agent_run` pendente, procura o transcript do subagent em `~/.claude/projects/<slug-do-cwd>/<sessão>/subagents/agent-*.jsonl`, casando por `agentType` (do `.meta.json`) + janela `[started_at−90s, ended_at+90s]`; um transcript casa com no máximo um evento. Soma `message.usage` das linhas `assistant` e calcula custo por `pricing.json` (+ `pricingOverrides`). Sem match ⇒ `source: "unavailable"` (painel mostra `—`; re-tenta na próxima execução). **Custo nunca vem do transcript** (subscription reporta 0).
+- **`sdd-log.mjs`** — appender de eventos do RUN.jsonl por flags (run_id/timestamps automáticos; agent_run herda started_at do agent_start).
+- **`sdd-sync.mjs`** — wrapper único por passo: tokens → report → DASHBOARD → painel no stdout (best-effort).
+- **`sdd-live.mjs`** — painel ao vivo para outro terminal: re-render a cada 2s, matcher de tokens a cada 10s, encerra no run_end (`--once` para render único).
 - **`sdd-report.mjs`** — consolida o RUN.jsonl e gera: painel da feature (`--feature`, `--write` ⇒ DASHBOARD.md com tabela + mermaid + gates + artefatos), agregado do projeto (`--aggregate`), linha do índice global (`--append-run-index`) e estimativa por histórico (`--estimate`). Toda aritmética é feita aqui — o LLM só apresenta a saída.
 - Fragilidade conhecida: o formato dos transcripts é interno do Claude Code e pode mudar entre versões — por isso o fallback `unavailable` nunca quebra o fluxo.
 
 ## Knowledge (`knowledge/`)
 
-Ver [LEARNING.md](LEARNING.md). Estruturalmente: `INDEX.md` (1 linha/lição com tags — o que os agentes leem primeiro), `PROCESS.md`, `stacks/<perfil>.md` e `runs-index.jsonl` (1 linha agregada por rodada de qualquer projeto — alimenta `--estimate` e `/sdd-dashboard --global`).
+Ver [LEARNING.md](LEARNING.md). Estruturalmente: `INDEX.md` (1 linha/lição com tags — o que os agentes leem primeiro), `PROCESS.md`, `stacks/<perfil>.md` e `runs-index.jsonl` (1 linha agregada por rodada de qualquer projeto — alimenta `--estimate` e `/sdd-dashboard --global`). **Sync plug-and-play**: o destino padrão das lições é o clone do marketplace (`~/.claude/plugins/marketplaces/sdd-framework`), presente em qualquer instalação — commit `learn:` + push com aprovação; `project.frameworkRepo` é apenas override opcional de mantenedor.
 
 ## Decisões de design registradas
 

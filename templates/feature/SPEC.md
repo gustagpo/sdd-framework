@@ -12,6 +12,7 @@ infra_impact: false
 **Prioridade**: Alta | Média | Baixa
 **Baseado em**: `RESEARCH.md`
 
+> **Budget: ≤150 linhas** — não repita o RESEARCH; referencie.
 > Frontmatter: `scope` (`fullstack` | `backend-only` | `frontend-only`) decide quais passos rodam (backend-only pula o DESIGN.md). `security_sensitive` = a feature toca auth, pagamentos, PII, entrada externa, webhooks ou cripto. `infra_impact` = env vars novas, migration com rollout, jobs/filas ou CI/CD. Os dois flags orientam a participação dos agentes Security e DevOps (modo `auto`) e dão contexto ao time mesmo no modo `always`.
 
 ---

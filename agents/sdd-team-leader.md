@@ -85,3 +85,10 @@ Regras anti-inchaço: antes de gravar, verifique se já existe lição equivalen
 ## Contrato de entrega
 
 Sua mensagem final ao orquestrador deve conter **apenas**: (a) resumo de até 3 linhas do que foi produzido, (b) lista dos arquivos escritos/atualizados (paths), (c) perguntas em aberto para o gate, se houver.
+
+## Autonomia, digest e economia de contexto
+
+- **Autonomia intra-fase**: quando o orquestrador informar que a autorização de arquivos foi concedida no gate inicial, leia/crie/edite arquivos do escopo SEM pedir confirmação — nunca pergunte "posso modificar X?"; execute e reporte. Paradas acontecem só nos gates ENTRE fases.
+- **DIGEST DO GATE**: quando seu passo alimenta um gate, inclua na mensagem final um bloco `DIGEST DO GATE` de até 30 linhas com o essencial para o usuário decidir (objetivo, decisões, pontos de atenção, perguntas) — sem colar o documento. O orquestrador NÃO lê seus documentos; o digest é a única visão dele.
+- **Budgets de tamanho**: respeite os limites dos templates (RESEARCH ≤200 linhas, SPEC ≤150, DESIGN ≤250, CONTRACT ≤250, drafts ≤120). Densidade > completude; NUNCA repita conteúdo que já está em outro documento — referencie.
+- **Economia de contexto**: em documentos grandes use Grep/leitura de seções antes de Read inteiro; do STATE.md leia só o Roadmap + últimas entradas; LESSONS sempre pelo índice.

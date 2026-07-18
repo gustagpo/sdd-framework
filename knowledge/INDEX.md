@@ -4,7 +4,9 @@
 
 ## Processo (PROCESS.md)
 
-<!-- - P-001 [processo][passo-3] Título curto -->
+- P-001 [processo][telemetria] Custo por agente exige label determinístico na invocação + telemetria em 1 comando por passo
+- P-002 [processo][orquestrador] Uma feature por sessão — 2 rodadas na mesma sessão estouram o contexto
+- P-003 [processo][gates] Gates consomem DIGEST (≤30 linhas) do agente, nunca o documento inteiro
 
 ## Segurança (PROCESS.md, tags [security])
 

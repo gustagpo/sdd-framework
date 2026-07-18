@@ -5,7 +5,7 @@
 **Consolidado por**: [conforme `conventions.contractConsolidator` da config]
 **Baseado em**: `SPEC.md` — Status [APPROVED] + `DESIGN.md`
 
-> Consolidação dos rascunhos em `drafts/CONTRACT.<agente>.md`. Conflitos entre rascunhos são resolvidos aqui, com a decisão registrada.
+> Consolidação dos rascunhos em `drafts/CONTRACT.<agente>.md`. **Budget: ≤250 linhas (drafts ≤120)** — decisões e casos, sem re-narrar SPEC/DESIGN. Conflitos entre rascunhos são resolvidos aqui, com a decisão registrada.
 
 ---
 

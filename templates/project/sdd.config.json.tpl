@@ -71,6 +71,10 @@
     "openApiSpecs": {{OPENAPI_SPECS_JSON}},
     "webSearch": true
   },
+  "phases": {
+    "mode": "ask",
+    "skip": []
+  },
   "gates": {
     "mode": "ask",
     "afterStep1": true,

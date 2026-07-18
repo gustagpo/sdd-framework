@@ -42,16 +42,17 @@ O orquestrador injeta na cadeia de contexto de cada agente: `knowledge/INDEX.md`
 
 ## Sincronização com o repo fonte
 
-A cópia do plugin que os agentes usam em runtime (`~/.claude/plugins/cache/...`) **não é versionada** e é substituída quando o plugin atualiza. Por isso o orquestrador, ao fim do Passo 7, replica as mudanças de `knowledge/` para o clone fonte apontado por `project.frameworkRepo` no `sdd.config.json`, commita com prefixo `learn:` e pergunta antes de dar push. Fluxo completo:
+A cópia do plugin que os agentes usam em runtime (`~/.claude/plugins/cache/...`) **não é versionada** e é substituída quando o plugin atualiza. Por isso o orquestrador, ao fim do Passo 7, replica as mudanças de `knowledge/` para o **clone do marketplace** — `~/.claude/plugins/marketplaces/sdd-framework`, um clone git com origin que existe em **qualquer máquina que instalou o plugin** (zero configuração por projeto: plug-and-play) — commita com prefixo `learn:` e pergunta antes de dar push. Fluxo completo:
 
 ```
 retrospectiva escreve em ${CLAUDE_PLUGIN_ROOT}/knowledge (efeito imediato na máquina)
-      → replica no clone fonte (frameworkRepo) → commit "learn: ..." → push (com aprovação)
+      → replica no clone do marketplace (~/.claude/plugins/marketplaces/sdd-framework)
+      → commit "learn: ..." → push (com aprovação; sem permissão de push ⇒ diff + fork/PR)
       → outros projetos/máquinas recebem via: claude plugin marketplace update sdd-framework
         + claude plugin update sdd-framework (ou reinstalação)
 ```
 
-Sem `frameworkRepo` configurado, o orquestrador apresenta o diff do knowledge para você aplicar manualmente ao repo fonte (github.com/gustagpo/sdd-framework) — uma lição nunca deve existir só na cópia instalada.
+`project.frameworkRepo` no `sdd.config.json` é um **override opcional de mantenedor** (aponta um clone de desenvolvimento local); ausente/null = fluxo padrão acima. Uma lição nunca deve existir só na cópia instalada.
 
 ## Higiene e auditoria
 

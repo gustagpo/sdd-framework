@@ -1,61 +1,72 @@
-# /sdd-init — Configurar um projeto para o SDD Framework
+# /sdd-init — Configurar um projeto para o SDD Framework (com gate de configuração)
 
-Você configura (ou adota) um repositório para rodar o fluxo SDD. Ao final, o projeto terá `specs/sdd.config.json` + `specs/STACK.md` + os documentos vivos, e o `/sdd` estará pronto para uso.
+Você configura (ou adota) um repositório para rodar o fluxo SDD. Ao final, o projeto terá `specs/sdd.config.json` + `specs/STACK.md` + `specs/WORKFLOW.md` + os documentos vivos, permissões acertadas, e o `/sdd` estará pronto para uso. É o **onboarding** do framework no projeto — trate como uma conversa guiada, não como um formulário.
 
 **Input**: `$ARGUMENTS` = opcional; ignore salvo instrução explícita do usuário.
 
 ---
 
+## Passo 0 — Verificação de ambiente
+
+Cheque e reporte (sem parar por avisos):
+1. `node --version` disponível (os scripts de telemetria/painel dependem dele; sem node, o fluxo roda mas sem custos/live — avise).
+2. Plugin acessível: `${CLAUDE_PLUGIN_ROOT}/scripts/sdd-log.mjs` existe.
+3. **Peso dos docs do projeto** (impacta TODO agente em TODA rodada): meça `CLAUDE.md`, `specs/STATE.md`, `specs/LESSONS.md` se existirem. Qualquer um **>40KB** ⇒ alerte com o custo real ("este arquivo é carregado em cada invocação de cada agente — em uma rodada de ~25 invocações, são ~25× o arquivo em contexto") e sugira mover detalhe enciclopédico para arquivos referenciados. Não modifique nada sem pedido.
+
 ## Passo 1 — Detectar a stack e o estado do projeto
 
-Investigue o repositório (sem perguntar o que dá para descobrir):
+Investigue (sem perguntar o que dá para descobrir):
 
-1. **Backend**: `package.json` com `@nestjs/core` → `nestjs`; com `next` → `nextjs`; `pyproject.toml`/`requirements.txt` com `fastapi` → `python-fastapi`; `pom.xml`/`build.gradle*` com spring-boot → `spring-boot`. Outro framework → perfil `custom` (sem arquivo de perfil; o STACK.md carrega tudo).
-2. **Frontend**: deps `react`+`vite` → `react-vite`; `next` → `nextjs`; ausência de frontend → desabilitar `dev-frontend`/`ux-ui`.
-3. **Monorepo/workspaces** e **scripts** de build/test (do `package.json`, `Makefile`, `pyproject`, etc.) — pré-preencha os comandos.
-4. **Fontes de pesquisa**: diretórios de documentação (`docs/`, `doc/`, `documentation/`) e specs OpenAPI (`*.json`/`*.yaml` com `"openapi"`).
-5. **Modo adoção**: se `specs/` já existe, liste o que já há (ARCHITECTURE/STATE/LESSONS/TESTS/features) — nesses casos você **não sobrescreve nada existente**, só gera o que falta.
+1. **Backend**: `package.json` (`@nestjs/core`→`nestjs`; `next`→`nextjs`), `pyproject.toml`/`requirements.txt` (`fastapi`→`python-fastapi`), `pom.xml`/`build.gradle*` (→`spring-boot`). Outro → `custom` (STACK.md carrega tudo).
+2. **Frontend**: `react`+`vite`→`react-vite`; `next`→`nextjs`; sem frontend → desabilitar `dev-frontend`/`ux-ui`.
+3. **Monorepo/workspaces** e **scripts** de build/test — pré-preencha os comandos (lembre do placeholder `{pattern}`).
+4. **Fontes de research**: dirs de documentação (`docs/`, `doc/`) e specs OpenAPI.
+5. **Permissões atuais**: leia `.claude/settings.json`/`settings.local.json` do projeto — o workspace já tem allowlist de Read/Edit/Write/Bash?
+6. **Modo adoção**: `specs/` já existe? Liste o que há; você **não sobrescreve nada existente** — só gera o que falta e propõe diffs.
 
-## Passo 2 — Confirmar com o usuário (AskUserQuestion)
+## Passo 2 — GATE DE CONFIGURAÇÃO (a parada formal)
 
-Pergunte apenas o que a detecção não resolveu com confiança, pré-preenchendo com o detectado:
+Apresente o que foi detectado e pergunte **em bloco** (AskUserQuestion; pré-preenchendo com o detectado) tudo que definirá o comportamento do `/sdd` neste projeto:
 
-- Perfis backend/frontend (se ambíguos)
-- Comandos de build/teste/e2e (mostre os detectados; lembre do placeholder `{pattern}` para filtro de teste)
-- Modelos por agente — default "máxima qualidade": `team-leader=fable (fallback opus)`, demais `opus`; ofereça também "balanceado" (devs/qa=sonnet) e "econômico"
-- Gates de aprovação (default: após Passos 1, 2 e 3)
-- Fontes de research (docsDirs/openApiSpecs detectados; webSearch ligado?)
+1. **Perfis de stack** (se ambíguos) e **comandos** de build/teste/e2e.
+2. **Modelos por agente** — presets: "máxima qualidade" (team-leader=fable/fallback opus, demais opus), "balanceado" (devs/qa=sonnet), "econômico".
+3. **Modo de aprovação default** (`gates.mode`): `ask` (pergunta a cada rodada — recomendado no início) | `supervised` | `autonomous`.
+4. **Preset de fases default** (`phases.mode`): `ask` | `full` | `lite` | `spec-only` — explique cada um em 1 linha (nem todo projeto quer as 7 fases sempre).
+5. **Participação de Security e DevOps**: `always` | `auto` (pelos flags do SPEC) | `never`.
+6. **Autonomia de arquivos** (permissões): se o projeto ainda não tem allowlist, oferecer gravar em `.claude/settings.local.json`: `Read(//<projeto>/**)`, `Edit(//<projeto>/**)`, `Write`, `Bash` — para os agentes trabalharem sem prompts de permissão dentro das fases.
+7. **Fontes de research** (docsDirs/openApiSpecs detectados; webSearch).
+
+**Antes de gravar qualquer arquivo, mostre o RESUMO CONSOLIDADO** das escolhas e peça aprovação explícita. Rodar `/sdd-init` de novo reabre este gate para reconfigurar (idempotente; mostra diffs do que mudaria).
 
 ## Passo 3 — Gerar os arquivos
 
-A partir de `${CLAUDE_PLUGIN_ROOT}/templates/project/`, substituindo os placeholders `{{...}}` com o que foi detectado/confirmado:
+De `${CLAUDE_PLUGIN_ROOT}/templates/project/`, substituindo os `{{...}}` com o aprovado no gate:
 
 | Gerar | De | Regra |
 |---|---|---|
-| `specs/sdd.config.json` | `sdd.config.json.tpl` | sempre (abortar se já existir e o usuário não pedir para recriar) |
-| `specs/STACK.md` | `STACK.md.tpl` | sempre; preencher stack/comandos/estrutura detectados; seções de convenções/regras de negócio ficam com placeholders para o time preencher |
-| `specs/ARCHITECTURE.md` | `ARCHITECTURE.md.tpl` | só se não existir |
-| `specs/STATE.md` | `STATE.md.tpl` | só se não existir |
-| `specs/LESSONS.md` | `LESSONS.md.tpl` | só se não existir |
-| `specs/TESTS.md` | `TESTS.md.tpl` | só se não existir |
-| `specs/features/` | — | criar diretório vazio se não existir |
+| `specs/sdd.config.json` | `sdd.config.json.tpl` | sempre (existente ⇒ propor diff, não sobrescrever sem aval) |
+| `specs/STACK.md` | `STACK.md.tpl` | sempre; convenções/regras de negócio ficam como placeholder para o time (em adoção: extrair de CLAUDE.md/docs o que for operacional) |
+| `specs/WORKFLOW.md` | `WORKFLOW.md.tpl` | sempre que não existir (existente ⇒ propor diff) — documenta Gate Inicial, modos e presets de fases |
+| `specs/ARCHITECTURE.md` / `STATE.md` / `LESSONS.md` / `TESTS.md` | `*.tpl` | só se não existirem |
+| `specs/features/` | — | criar se não existir |
+| `.claude/settings.local.json` | — | só se a autonomia de arquivos foi aprovada no gate e não há allowlist equivalente |
 
-Notas:
-- `DOCS_DIRS_JSON`/`OPENAPI_SPECS_JSON` no config são arrays JSON reais (ex.: `["docs/"]`).
-- Projeto sem frontend: `agents["dev-frontend"].enabled = false` e `agents["ux-ui"].enabled = false`.
-- **Modo adoção**: se o projeto já tem convenções documentadas (CLAUDE.md, docs internos), extraia para o STACK.md o que for de stack/projeto (comandos, estrutura, áreas proibidas, regras críticas) em vez de deixar placeholders.
+Notas: `DOCS_DIRS_JSON`/`OPENAPI_SPECS_JSON` são arrays JSON reais; projeto sem frontend ⇒ `enabled: false` em dev-frontend/ux-ui.
 
 ## Passo 4 — CLAUDE.md
 
-Apende o conteúdo de `${CLAUDE_PLUGIN_ROOT}/templates/project/CLAUDE-snippet.md` ao `CLAUDE.md` do projeto (crie o arquivo se não existir; se já houver uma seção SDD, atualize-a em vez de duplicar).
+Apender `templates/project/CLAUDE-snippet.md` ao `CLAUDE.md` do projeto (criar se não existir; seção SDD existente ⇒ atualizar, não duplicar).
 
-## Passo 5 — Validar e reportar
+## Passo 5 — Validar e encerrar o onboarding
 
-1. Valide o `sdd.config.json` gerado (`node -e "JSON.parse(...)"` via Bash ou leitura direta).
-2. Apresente ao usuário: os arquivos gerados, a config resolvida (perfis, comandos, modelos por agente), o que ficou como placeholder no STACK.md para preencher, e o próximo passo: `/sdd <nome-da-feature> "<descrição>"`.
+1. Valide o `sdd.config.json` (`node -e "JSON.parse(...)"`).
+2. Apresente: arquivos gerados, config resolvida, placeholders pendentes no STACK.md, alertas de peso de docs (Passo 0) e os **próximos passos**:
+   - `/sdd <feature> "<descrição>"` para a primeira rodada (o Gate Inicial da rodada pergunta modo/fases/autonomia)
+   - comando do painel ao vivo (`sdd-live.mjs`) para acompanhar em outro terminal
+   - `/sdd-dashboard` para custos; `docs/ONBOARDING.md` do plugin para o guia completo
 
 ## Regras
 
-- **Idempotente**: rodar de novo nunca destrói conteúdo existente; só completa o que falta e propõe diffs para o que mudaria.
-- Não invente comandos: se não conseguir detectar o comando de teste, deixe o placeholder e avise explicitamente que o `/sdd` precisa dele preenchido.
+- **Idempotente**: nunca destrói conteúdo existente; completa o que falta e propõe diffs.
+- Não invente comandos: sem detecção confiável, deixe placeholder e avise que o `/sdd` precisa dele preenchido.
 - Não crie feature nem escreva código — este comando só configura.

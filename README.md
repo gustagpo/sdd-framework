@@ -23,15 +23,18 @@ claude plugin enable sdd-framework@sdd-framework --scope project
 ```
 
 ```text
-# 3. Configure o projeto (detecta a stack, gera specs/ + sdd.config.json + STACK.md)
+# 3. Configure o projeto (gate de configuração: stack, modelos, modo, fases, permissões)
 /sdd-init
 
-# 4. Rode uma feature pelo fluxo completo (7 passos, com gates)
+# 4. Rode uma feature (o Gate Inicial pergunta modo de aprovação, fases e autonomia;
+#    o orquestrador imprime o comando do painel AO VIVO para outro terminal)
 /sdd minha-feature "Descrição em linguagem natural do que a feature faz"
 
 # 5. Veja custos e histórico
 /sdd-dashboard
 ```
+
+Nem todo projeto quer as 7 fases sempre: presets `full`, `lite` (enxuto) e `spec-only` (só especificação) — escolhidos no Gate Inicial ou fixados na config.
 
 ## O que tem dentro
 
@@ -47,6 +50,7 @@ claude plugin enable sdd-framework@sdd-framework --scope project
 
 ## Documentação
 
+- **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — do zero à primeira feature: instalação, gate de configuração do `/sdd-init`, as 3 decisões de cada rodada e o painel ao vivo
 - **[docs/OPERATING.md](docs/OPERATING.md)** — manual de operação: anatomia de uma rodada, como agir nos gates, overrides de modelo, como ler os painéis, troubleshooting
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — como o framework funciona por dentro: orquestrador × agentes × config × standards, schemas do `sdd.config.json` e do `RUN.jsonl`, telemetria
 - **[docs/EXTENDING.md](docs/EXTENDING.md)** — criar perfil de stack novo, customizar agentes e templates, ajustar preços
@@ -59,6 +63,6 @@ claude plugin enable sdd-framework@sdd-framework --scope project
 - Este repositório é a fonte de verdade do framework: lições aprendidas viram commits aqui (prefixo `learn:`) e propagam ao atualizar o plugin nos projetos.
 - Se o diretório que contém este repo virar um repositório git, mova o framework para fora (repo aninhado só é seguro em workspace não-versionado).
 
-## Versão
+## Versão e releases
 
-0.1.0 — ver `.claude-plugin/plugin.json`.
+A versão vigente está em `.claude-plugin/plugin.json`; o histórico completo fica nas [tags/releases do GitHub](https://github.com/gustagpo/sdd-framework/tags). (Sem número aqui de propósito — README não dessincroniza.)

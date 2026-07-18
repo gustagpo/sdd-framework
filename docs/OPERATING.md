@@ -6,11 +6,11 @@ Guia do dia a dia para quem opera o fluxo. Pressupõe o plugin instalado e o pro
 
 ## Anatomia de uma rodada `/sdd`
 
-Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...] [--gates supervised|autonomous]`
+Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...] [--gates supervised|autonomous] [--phases full|lite|spec-only]`
 
 | Passo | Quem | O que você vê / faz |
 |---|---|---|
-| **Preparação** | orquestrador | Confirma o nome da pasta, **pergunta o modo de aprovação** (o validador — ver seção abaixo), copia templates para `specs/features/<nome>/`, abre o `RUN.jsonl` e mostra a **estimativa de custo/duração** baseada no histórico (se houver) |
+| **Gate Inicial (0)** | orquestrador | UMA parada de configuração: modo de aprovação, **preset de fases** (full/lite/spec-only/custom), **autonomia de arquivos** e nome da pasta. Depois: copia templates, abre o `RUN.jsonl`, imprime o comando do **painel ao vivo** (`sdd-live.mjs`, para outro terminal) e a estimativa histórica |
 | **1 — Research + Spec** | Team Leader | Discovery profundo (código, docs locais, web) → `RESEARCH.md`; depois `SPEC.md` + `PROMPT.md`. **[Gate 1]**: você revisa o research (perguntas em aberto!) e a spec |
 | **2 — Design** | UX/UI | `DESIGN.md` com layout, componentes, estados de UI. Pulado por completo se a spec é `backend-only`. **[Gate 2]** |
 | **3 — Contract** | Devs + QA + Security + DevOps (paralelo) | Rascunhos em `drafts/` (Security traz o threat model + casos SEC-XXX; DevOps traz requisitos operacionais + casos OPS-XXX); Dev Backend consolida o `CONTRACT.md`. **[Gate 3]** |
@@ -20,6 +20,27 @@ Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...] [--g
 | **7 — Fechamento** | Team Leader | `RESUME.md`, `STATE.md`, **retrospectiva de aprendizado**; orquestrador mostra o painel final consolidado |
 
 Ao fim de **cada** passo o orquestrador imprime o painel parcial (agente, modelo, duração, tokens, custo estimado, gates) e regenera o `DASHBOARD.md` da feature.
+
+## Painel ao vivo
+
+No início da rodada o orquestrador imprime o comando pronto — cole em outro terminal:
+
+```bash
+node <plugin>/scripts/sdd-live.mjs --feature specs/features/<nome> --project-dir "$(pwd)"
+```
+
+Re-renderiza a cada 2s: agentes **em execução** (com elapsed), tokens/custo por agente (matcher rodando a cada ~10s), totais da spec, gates e fases puladas. Encerra sozinho no `run_end`.
+
+## Presets de fases (Gate Inicial)
+
+| Preset | Passos | Para quem |
+|---|---|---|
+| `full` | 1→7 | Feature completa com TDD e avaliação total |
+| `lite` | 1→3→5→6simpl.→7 | Rapidez: testes escritos junto da implementação; avaliação enxuta |
+| `spec-only` | 1→2→3 e PARA | Quer só as specs (research/spec/design/contrato) para implementar por fora |
+| `custom` | você escolhe | Guard-rails: implementação exige CONTRACT; pular testes/avaliação pede aceite de risco; Passo 7 obrigatório se implementou |
+
+Default em `phases.mode` (`ask` pergunta a cada rodada); override por rodada com `--phases`.
 
 ## Modos de aprovação (o validador)
 
@@ -45,6 +66,10 @@ Segurança do modo autônomo: o limite de iterações de correção (`maxFixIter
 - Custo: no modo `always`, cada rodada ganha ~2 invocações a mais no Passo 3 e ~2 no Passo 6 (+1 no Passo 5 quando há infra). Projetos com muitas features simples podem preferir `"auto"`.
 - O Security **não corrige código** — findings dele são roteados aos Devs; o DevOps corrige os próprios itens de infra.
 
+## Autonomia de arquivos (sem interrupções dentro das fases)
+
+Concedida no Gate Inicial ⇒ os agentes recebem a cláusula "leia/crie/edite sem pedir confirmação; nunca pergunte 'posso modificar X?'" e, se o projeto não tiver allowlist, o orquestrador oferece gravar `.claude/settings.local.json` escopado. Os gates continuam ENTRE as fases — dentro delas, zero paradas. Alternativa de sessão: `claude --permission-mode acceptEdits`.
+
 ## Overrides de modelo
 
 - **Por projeto**: edite `agents.<papel>.model` no `specs/sdd.config.json` (valores: `fable`, `opus`, `sonnet`, `haiku`; `fallbackModel` cobre indisponibilidade).
@@ -64,7 +89,7 @@ Segurança do modo autônomo: o limite de iterações de correção (`maxFixIter
 |---|---|---|
 | `/sdd` pede `/sdd-init` | `specs/sdd.config.json` ausente | Rode `/sdd-init` |
 | Agente iniciou com modelo diferente do configurado | Modelo primário indisponível | Normal: `fallbackModel` assumiu; evento fica `status: "retried"` no RUN.jsonl |
-| Painel com `—` em tokens/custo | Transcript do subagent ainda não gravado/encontrado | Rode `/sdd-dashboard --feature <nome>` mais tarde — o `sdd-tokens` re-tenta eventos pendentes |
+| Painel com `—` em tokens/custo | Transcript ainda não gravado, ou invocação sem label | Rode `/sdd-dashboard --feature <nome>` mais tarde (o matcher re-tenta); rodadas novas casam por label determinístico (`agent_label`) |
 | Passo 6 estourou 3 iterações | Reprovações persistentes | O orquestrador para e apresenta a situação; decida entre relaxar o critério, ajustar o contrato (voltar ao Gate 3) ou intervir manualmente |
 | Comando de teste falha com flag desconhecida | Comando errado no config | Corrija `commands.*` no `sdd.config.json` (os agentes nunca inventam flags — usam o que está lá) |
 | Rodada interrompida no meio | sessão caiu / abort | Rode `/sdd` de novo com o mesmo nome de feature: os documentos já aprovados são reaproveitados; o orquestrador continua do primeiro passo sem artefato |

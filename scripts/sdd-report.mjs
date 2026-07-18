@@ -47,10 +47,11 @@ function readJsonl(file) {
   return out;
 }
 
-/** Consolida um RUN.jsonl: aplica tokens_update (último vence) sobre agent_run. */
+/** Consolida um RUN.jsonl: aplica tokens_update (último vence) sobre agent_run; detecta agentes em execução (agent_start sem agent_run). */
 function consolidate(events) {
   const runs = [];
   const gates = [];
+  const starts = [];
   let runStart = null;
   let runEnd = null;
   const byKey = new Map();
@@ -58,6 +59,7 @@ function consolidate(events) {
     if (e.type === 'run_start') runStart = e;
     else if (e.type === 'run_end') runEnd = e;
     else if (e.type === 'gate') gates.push(e);
+    else if (e.type === 'agent_start') starts.push(e);
     else if (e.type === 'agent_run') {
       const key = `${e.step}|${e.agent}|${e.started_at}`;
       const entry = { ...e, tokens: { ...e.tokens }, cost_usd_est: e.cost_usd_est ?? null };
@@ -73,7 +75,16 @@ function consolidate(events) {
       }
     }
   }
-  return { runs, gates, runStart, runEnd };
+  // em execução = agent_start sem agent_run correspondente (mesmo step/agent/iter)
+  const running = runEnd
+    ? []
+    : starts.filter(
+        (s) =>
+          !runs.some(
+            (r) => r.step === s.step && r.agent === s.agent && (r.iteration ?? 1) === (s.iteration ?? 1)
+          )
+      );
+  return { runs, gates, runStart, runEnd, running };
 }
 
 function fmtDuration(startIso, endIso) {
@@ -113,7 +124,7 @@ function totals(runs) {
   return t;
 }
 
-function featureTable(runs, gates) {
+function featureTable(runs, gates, running = [], phases = null) {
   const lines = [];
   lines.push('| Passo | Iter | Agente | Modelo | Duração | Tok in/out | Custo est. | Status |');
   lines.push('|---|---|---|---|---|---|---|---|');
@@ -124,14 +135,25 @@ function featureTable(runs, gates) {
       `| ${r.step} | ${r.iteration ?? 1} | ${r.agent} | ${r.model_resolved || r.model || '—'} | ${fmtDuration(r.started_at, r.ended_at)} | ${tokIn} / ${tokOut} | ${fmtCost(r.cost_usd_est)} | ${r.status || '—'} |`
     );
   }
+  for (const s of running) {
+    lines.push(
+      `| ${s.step} | ${s.iteration ?? 1} | ${s.agent} | ${s.model || '—'} | ⏱ ${fmtDuration(s.at, new Date().toISOString())} | … | … | **EM EXECUÇÃO** |`
+    );
+  }
   const t = totals(runs);
   const gateStr = gates.length
     ? gates.map((g) => `Gate ${g.step}: ${g.approved ? '✔' : '✖'}${g.auto ? '(auto)' : ''}`).join(' · ')
     : 'nenhum gate registrado';
   lines.push('');
   lines.push(
-    `**Parcial:** ${t.hasCost ? '~' + fmtCost(t.cost) : '—'} (estimado) · ${t.count} invocações · ${fmtDuration(new Date(0).toISOString(), new Date(t.durMs).toISOString())} de agentes · ${gateStr}`
+    `**Parcial:** ${t.hasCost ? '~' + fmtCost(t.cost) : '—'} (estimado) · ${t.count} invocações${running.length ? ` (+${running.length} em execução)` : ''} · ${fmtDuration(new Date(0).toISOString(), new Date(t.durMs).toISOString())} de agentes · ${gateStr}`
   );
+  if (phases?.skip?.length || (phases?.mode && phases.mode !== 'full')) {
+    lines.push('');
+    lines.push(
+      `**Fases:** preset \`${phases.mode || 'full'}\`${phases.skip?.length ? ` · pulados: ${phases.skip.map((n) => `Passo ${n}`).join(', ')}` : ''}`
+    );
+  }
   return lines.join('\n');
 }
 
@@ -155,13 +177,15 @@ function featureReport(featureDir, write) {
     console.log(`[sdd-report] sem RUN.jsonl legível em ${featureDir}`);
     return;
   }
-  const { runs, gates, runStart, runEnd } = consolidate(events);
+  const { runs, gates, runStart, runEnd, running } = consolidate(events);
   const feature = runStart?.feature || path.basename(featureDir);
-  const maxStep = runs.length ? Math.max(...runs.map((r) => r.step)) : 0;
+  const numericSteps = [...runs, ...running].map((r) => r.step).filter((s) => typeof s === 'number');
+  const maxStep = numericSteps.length ? Math.max(...numericSteps) : 0;
 
   const modeStr = runStart?.gate_mode ? ` · modo ${runStart.gate_mode === 'autonomous' ? 'autônomo' : 'supervisionado'}` : '';
-  const header = `### Painel SDD — ${feature} · ${runEnd ? 'rodada concluída' : `até Passo ${maxStep}/7`}${modeStr}`;
-  const table = featureTable(runs, gates);
+  const runningStr = running.length ? ` · ${running.length} agente(s) em execução` : '';
+  const header = `### Painel SDD — ${feature} · ${runEnd ? 'rodada concluída' : `até Passo ${maxStep}/7`}${modeStr}${runningStr}`;
+  const table = featureTable(runs, gates, running, runStart?.phases || null);
   const terminal = `${header}\n\n${table}`;
   console.log(terminal);
 

@@ -4,7 +4,7 @@
 **Data**: YYYY-MM-DD
 **Baseado em**: SPEC.md
 
-> Fonte de verdade visual. O Dev Frontend não toma nenhuma decisão de design por conta própria — tudo o que ele precisa está aqui. Componentes e tokens concretos vêm do design system do projeto (`specs/STACK.md`).
+> Fonte de verdade visual. **Budget: ≤250 linhas** — telas repetidas referenciam a primeira em vez de duplicar seções. O Dev Frontend não toma nenhuma decisão de design por conta própria — tudo o que ele precisa está aqui. Componentes e tokens concretos vêm do design system do projeto (`specs/STACK.md`).
 
 ---
 

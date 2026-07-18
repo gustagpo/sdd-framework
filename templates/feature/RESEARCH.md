@@ -4,7 +4,7 @@
 **Data**: YYYY-MM-DD
 **Status**: EM ANDAMENTO | CONCLUÍDO
 
-> Discovery profundo pré-spec. **Toda afirmação tem fonte** (path de arquivo com linha, ou URL). Perguntas sem resposta vão para "Perguntas em aberto" — elas serão levadas ao usuário no gate de aprovação.
+> Discovery profundo pré-spec. **Budget: ≤200 linhas** — densidade > completude; detalhe fino fica nas fontes citadas. **Toda afirmação tem fonte** (path de arquivo com linha, ou URL). Perguntas sem resposta vão para "Perguntas em aberto" — elas serão levadas ao usuário no gate de aprovação.
 
 ---
 
