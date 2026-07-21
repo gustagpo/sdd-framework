@@ -12,8 +12,9 @@ Exemplo: `/sdd cancelamento-contrato "Permitir cancelar um contrato liberando re
 
 1. **Uma feature por sessão.** Se esta sessão já rodou (ou está rodando) outra rodada `/sdd`, RECUSE e instrua o usuário a abrir uma sessão nova — o acúmulo de contexto de duas rodadas estoura o limite da sessão.
 2. **Você NUNCA lê os documentos da feature inteiros.** Os agentes retornam um `DIGEST DO GATE` (≤30 linhas) — é isso que você apresenta, junto com o path. O usuário abre o arquivo se quiser o inteiro. Sua única leitura de artefato permitida: frontmatter do SPEC.md (`head -8`) para resolver `scope`/flags.
-3. **Telemetria é parte do passo, não opcional.** Todo evento vai pro RUN.jsonl via `sdd-log.mjs` (nunca printf/JSON manual); ao fim de CADA passo rode `sdd-sync.mjs`; a rodada SEMPRE termina com `run_end`.
-4. **Dentro da fase, os agentes trabalham sem interrupção** (autonomia concedida no Gate Inicial); paradas acontecem apenas nos gates ENTRE fases, conforme o modo.
+3. **Só registre `agent_run` se você REALMENTE invocou o Agent.** Trabalho que você fizer inline não gera transcript (custo irrastreável) e queima o contexto da sessão — delegue sempre; se algo não puder ser delegado, registre `note`, nunca `agent_run`. E **sempre passe `name: LABEL`** na invocação: sem ele o custo por agente vira estimativa por janela de tempo (impreciso em passos paralelos).
+4. **Telemetria é parte do passo, não opcional.** Todo evento vai pro RUN.jsonl via `sdd-log.mjs` (nunca printf/JSON manual); ao fim de CADA passo rode `sdd-sync.mjs`; a rodada SEMPRE termina com `run_end`.
+5. **Dentro da fase, os agentes trabalham sem interrupção** (autonomia concedida no Gate Inicial); paradas acontecem apenas nos gates ENTRE fases, conforme o modo.
 
 ---
 

@@ -97,6 +97,14 @@ function collectSubagentTranscripts(projectsDir) {
 }
 
 /** Lê um transcript de subagent e devolve { usage, model, firstTs, lastTs } */
+/** agentTypes que NUNCA são teammates do SDD (ruído de subagents genéricos do Claude Code). */
+const NON_SDD_AGENT_TYPES = new Set(['Explore', 'general-purpose', 'Plan', 'claude', 'statusline-setup', 'claude-code-guide']);
+function isSddCandidate(meta) {
+  const t = String(meta?.agentType || '');
+  if (!t) return true; // sem meta: não dá para descartar
+  return !NON_SDD_AGENT_TYPES.has(t);
+}
+
 function summarizeTranscript(file) {
   const usage = { input: 0, output: 0, cache_read: 0, cache_creation: 0, cache_creation_1h: 0 };
   let model = null;
@@ -200,11 +208,12 @@ function main() {
       .filter((e) => e.type === 'tokens_update' && e.tokens?.source === 'transcript')
       .map((e) => `${e.ref?.step}|${e.ref?.agent}|${e.ref?.started_at}`)
   );
+  // --force reprocessa TODOS os agent_run (corrige dados manuais/errados; append-only, último vence)
   const pending = events.filter(
     (e) =>
       e.type === 'agent_run' &&
       e.started_at &&
-      !updatedKeys.has(`${e.step}|${e.agent}|${e.started_at}`)
+      (args.force || !updatedKeys.has(`${e.step}|${e.agent}|${e.started_at}`))
   );
 
   if (pending.length === 0) {
@@ -221,29 +230,56 @@ function main() {
     const start = Date.parse(ev.started_at) - MARGIN_MS;
     const end = ev.ended_at ? Date.parse(ev.ended_at) + MARGIN_MS : Date.now() + MARGIN_MS;
 
-    // 1) MATCH DETERMINÍSTICO por label: o orquestrador nomeia cada invocação
-    //    (param `name` do Agent) e o meta.json grava esse nome em agentType.
-    let best =
-      (ev.agent_label &&
-        transcripts.find((t) => !claimed.has(t.file) && t.meta?.agentType === ev.agent_label)) ||
-      null;
-    if (best && !summaries.has(best.file)) summaries.set(best.file, summarizeTranscript(best.file));
+    // `meta.agentType` tem DOIS formatos possíveis:
+    //   • o `name` passado na invocação (rótulo livre, ex.: "sdd-qa-p3i1-abc123", "tl2-passo1")
+    //   • o subagent_type NAMESPACED pelo plugin quando `name` é omitido ("sdd-framework:sdd-qa")
+    // A cadeia abaixo cobre os dois + o legado por tempo.
+    let best = null;
+    let matchKind = null;
 
-    // 2) Fallback (rodadas legadas sem label): janela de tempo, SEM exigir agentType —
-    //    agentTypes reais são rótulos livres (ex.: "tl-passo1") e nunca casariam com o papel.
-    if (!best) {
-      const candidates = transcripts.filter((t) => !claimed.has(t.file));
-      for (const c of candidates) {
+    // 1) MATCH DETERMINÍSTICO por label (o orquestrador nomeia cada invocação com `name`)
+    if (ev.agent_label) {
+      best = transcripts.find((t) => !claimed.has(t.file) && t.meta?.agentType === ev.agent_label) || null;
+      if (best) matchKind = 'label';
+    }
+
+    // 2) MATCH por subagent_type normalizado (remove o prefixo do plugin) + janela de tempo.
+    //    Muito mais preciso que tempo puro em passos paralelos (5 agentes simultâneos no Passo 3).
+    if (!best && ev.subagent_type) {
+      const wanted = String(ev.subagent_type).replace(/^[\w.-]+:/, '');
+      for (const c of transcripts) {
+        if (claimed.has(c.file)) continue;
+        const type = String(c.meta?.agentType || '').replace(/^[\w.-]+:/, '');
+        if (type !== wanted) continue;
         if (!summaries.has(c.file)) summaries.set(c.file, summarizeTranscript(c.file));
         const s = summaries.get(c.file);
         if (s.firstTs === null) continue;
-        if (s.firstTs >= start && s.firstTs <= end && s.lastTs <= end) {
+        if (s.firstTs >= start && s.firstTs <= end) {
           if (!best || Math.abs(s.firstTs - (start + MARGIN_MS)) < Math.abs(summaries.get(best.file).firstTs - (start + MARGIN_MS))) {
             best = c;
+            matchKind = 'subagent_type';
           }
         }
       }
     }
+
+    // 3) Fallback legado: janela de tempo (rótulos livres), ignorando subagents que não são do SDD.
+    //    Só o INÍCIO precisa cair na janela — o transcript pode ser gravado após o ended_at do evento.
+    if (!best) {
+      const candidates = transcripts.filter((t) => !claimed.has(t.file) && isSddCandidate(t.meta));
+      for (const c of candidates) {
+        if (!summaries.has(c.file)) summaries.set(c.file, summarizeTranscript(c.file));
+        const s = summaries.get(c.file);
+        if (s.firstTs === null) continue;
+        if (s.firstTs >= start && s.firstTs <= end) {
+          if (!best || Math.abs(s.firstTs - (start + MARGIN_MS)) < Math.abs(summaries.get(best.file).firstTs - (start + MARGIN_MS))) {
+            best = c;
+            matchKind = 'time-window';
+          }
+        }
+      }
+    }
+    if (best && !summaries.has(best.file)) summaries.set(best.file, summarizeTranscript(best.file));
 
     if (best) {
       claimed.add(best.file);
@@ -264,6 +300,7 @@ function main() {
         tokens,
         cost_usd_est: estimateCost(pricing, model, s.usage),
         transcript: best.file,
+        match: matchKind,
         at: new Date().toISOString(),
       });
     } else if (ev.ended_at) {
@@ -284,7 +321,14 @@ function main() {
     fs.appendFileSync(runFile, updates.map((u) => JSON.stringify(u)).join('\n') + '\n');
   }
   const resolved = updates.filter((u) => u.tokens.source === 'transcript').length;
-  console.log(`[sdd-tokens] ${resolved}/${pending.length} eventos resolvidos (${updates.length - resolved} unavailable)`);
+  const byMatch = {};
+  for (const u of updates) if (u.match) byMatch[u.match] = (byMatch[u.match] || 0) + 1;
+  const detalhe = Object.keys(byMatch).length ? ` [${Object.entries(byMatch).map(([k, v]) => `${k}:${v}`).join(', ')}]` : '';
+  console.log(`[sdd-tokens] ${resolved}/${pending.length} eventos resolvidos${detalhe} (${updates.length - resolved} sem transcript correspondente)`);
+  if (resolved < pending.length) {
+    const sddTr = transcripts.filter((t) => isSddCandidate(t.meta)).length;
+    console.log(`[sdd-tokens] nota: ${sddTr} transcript(s) de subagent disponíveis no projeto — eventos sem match provavelmente não geraram transcript (agente não invocado como subagent, ou sessão em outro diretório: use --project-dir)`);
+  }
 }
 
 main();

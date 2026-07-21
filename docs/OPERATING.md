@@ -95,7 +95,7 @@ Fluxo em 4 fases com o agente DevOps: **Discovery** (estado atual: Docker/nginx/
 |---|---|---|
 | `/sdd` pede `/sdd-init` | `specs/sdd.config.json` ausente | Rode `/sdd-init` |
 | Agente iniciou com modelo diferente do configurado | Modelo primário indisponível | Normal: `fallbackModel` assumiu; evento fica `status: "retried"` no RUN.jsonl |
-| Painel com `—` em tokens/custo | Transcript ainda não gravado, ou invocação sem label | Rode `/sdd-dashboard --feature <nome>` mais tarde (o matcher re-tenta); rodadas novas casam por label determinístico (`agent_label`) |
+| Painel com `—` em tokens/custo | Transcript ainda não gravado, invocação sem label, ou o passo não foi realmente delegado a um subagent | Rode `/sdd-dashboard --feature <nome>` mais tarde (o matcher re-tenta) ou force o backfill: `node <plugin>/scripts/sdd-tokens.mjs --feature <dir> --project-dir "$(pwd)" --force`. Se a nota disser "sem transcript correspondente", o custo daquele evento é irrecuperável — o agente não rodou como subagent |
 | Passo 6 estourou 3 iterações | Reprovações persistentes | O orquestrador para e apresenta a situação; decida entre relaxar o critério, ajustar o contrato (voltar ao Gate 3) ou intervir manualmente |
 | Comando de teste falha com flag desconhecida | Comando errado no config | Corrija `commands.*` no `sdd.config.json` (os agentes nunca inventam flags — usam o que está lá) |
 | Rodada interrompida no meio | sessão caiu / abort | Rode `/sdd` de novo com o mesmo nome de feature: os documentos já aprovados são reaproveitados; o orquestrador continua do primeiro passo sem artefato |

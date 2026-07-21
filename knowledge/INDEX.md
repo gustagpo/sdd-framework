@@ -7,6 +7,8 @@
 - P-001 [processo][telemetria] Custo por agente exige label determinístico na invocação + telemetria em 1 comando por passo
 - P-002 [processo][orquestrador] Uma feature por sessão — 2 rodadas na mesma sessão estouram o contexto
 - P-003 [processo][gates] Gates consomem DIGEST (≤30 linhas) do agente, nunca o documento inteiro
+- P-004 [processo][telemetria] agentType do transcript tem 2 formatos (name livre | subagent_type namespaced) + ruído a filtrar
+- P-005 [processo][telemetria] Só registre agent_run se houve invocação real de subagent — trabalho inline não tem transcript
 
 ## Segurança (PROCESS.md, tags [security])
 
