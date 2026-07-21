@@ -112,6 +112,33 @@ O `/sdd`, o `/sdd-init` e o `/sdd-dashboard` verificam (no máx. 1×/dia, com ti
 
 Atualizar é SEMPRE decisão do usuário (nunca automático; reinicie a sessão depois). Opt-out por projeto: `"updates": { "check": false }` no `sdd.config.json`. Verificação manual: `node <plugin>/scripts/sdd-version-check.mjs --force`.
 
+### Conferir a versão instalada
+
+```bash
+claude plugin list
+```
+
+Mostra cada plugin com **Version**, **Scope** (project/user) e **Status** (enabled/disabled). A instalação é **por projeto** — se você usa o plugin em vários repositórios, cada um tem sua própria versão, e o `plugin list` pode mostrar o mesmo plugin em versões diferentes (ex.: um projeto em `0.7.1` e outro ainda em `0.5.0`).
+
+### Atualizar um projeto que está atrás
+
+O update é **por projeto** — rode os comandos **de dentro do repositório** que quer atualizar:
+
+```bash
+# 1. (opcional) confirme a versão deste projeto
+claude plugin list
+
+# 2. atualize o marketplace (busca a versão nova do GitHub)
+claude plugin marketplace update sdd-framework
+
+# 3. atualize o plugin neste projeto
+claude plugin update sdd-framework@sdd-framework --scope project
+```
+
+Depois **reinicie a sessão do Claude Code** (comandos e agentes novos só carregam em sessão nova). Rode a mesma sequência em cada projeto que estiver desatualizado.
+
+**Se o passo 3 responder "already at the latest version" mesmo aparecendo uma versão antiga**: faça o passo 2 primeiro — o `plugin update` só enxerga a versão nova depois que o marketplace foi atualizado.
+
 ## Boas práticas
 
 - Descrições de feature ricas no `/sdd` (contexto + para quem + restrições) reduzem perguntas no Gate 1.

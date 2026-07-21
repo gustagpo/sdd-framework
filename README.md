@@ -63,6 +63,10 @@ Nem todo projeto quer as 7 fases sempre: presets `full`, `lite` (enxuto) e `spec
 - Este repositório é a fonte de verdade do framework: lições aprendidas viram commits aqui (prefixo `learn:`) e propagam ao atualizar o plugin nos projetos.
 - Se o diretório que contém este repo virar um repositório git, mova o framework para fora (repo aninhado só é seguro em workspace não-versionado).
 
+## Atualizar / conferir a versão
+
+`claude plugin list` mostra a versão instalada (é **por projeto** — cada repo tem a sua). Para atualizar um projeto, rode **de dentro dele**: `claude plugin marketplace update sdd-framework && claude plugin update sdd-framework@sdd-framework --scope project` e reinicie a sessão. A partir da 0.7.0 o próprio `/sdd` avisa quando há versão nova. Passo a passo completo (e o caso "already at the latest version"): [docs/OPERATING.md](docs/OPERATING.md) → Atualizações do framework.
+
 ## Versão e releases
 
 A versão vigente está em `.claude-plugin/plugin.json`; o histórico completo fica nas [tags/releases do GitHub](https://github.com/gustagpo/sdd-framework/tags). (Sem número aqui de propósito — README não dessincroniza.)
