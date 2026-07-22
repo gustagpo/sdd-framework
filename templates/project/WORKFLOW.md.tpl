@@ -72,5 +72,6 @@ specs/features/<nome>/
 2. Nenhuma spec sem RESEARCH (toda afirmação com fonte); nenhuma implementação sem CONTRACT aprovado
 3. Feature só fecha com EVALUATION aprovado em TODAS as seções participantes
 4. Uma feature por sessão do Claude Code
-5. Toda lição vira aprendizado classificado (projeto → `specs/LESSONS.md`; stack/processo → `knowledge/` do plugin)
-6. `STATE.md` atualizado a cada feature implementada; `ARCHITECTURE.md` a cada mudança arquitetural
+5. Ao fechar cada fase, os slots dos agentes concluídos são limpos — pré-condição do spawn paralelo da fase seguinte
+6. Toda lição vira aprendizado classificado (projeto → `specs/LESSONS.md`; stack/processo → `knowledge/` do plugin)
+7. `STATE.md` atualizado a cada feature implementada; `ARCHITECTURE.md` a cada mudança arquitetural

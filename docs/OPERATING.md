@@ -19,7 +19,7 @@ Comando: `/sdd <nome-da-feature> "<descrição>" [--model papel=modelo,...] [--g
 | **6 — Avaliação** | UX/UI + QA + Security + DevOps (paralelo) | `EVALUATION.md` com até 4 seções, consolidado pelo QA; aprovado geral exige TODAS as seções participantes; reprovações voltam ao responsável — `[DevOps]` corrige a própria infra (máx. 3 iterações) |
 | **7 — Fechamento** | Team Leader | `RESUME.md`, `STATE.md`, **retrospectiva de aprendizado**; orquestrador mostra o painel final consolidado |
 
-Ao fim de **cada** passo o orquestrador imprime o painel parcial (agente, modelo, duração, tokens, custo estimado, gates) e regenera o `DASHBOARD.md` da feature.
+Ao fechar **cada** fase o orquestrador **encerra os agentes concluídos (limpa os slots)** — agentes idle acumulados travam o spawn em lote da fase seguinte (lição P-006) — e em seguida imprime o painel parcial (agente, modelo, duração, tokens, custo estimado, gates) e regenera o `DASHBOARD.md` da feature.
 
 ## Painel ao vivo
 
@@ -98,6 +98,7 @@ Fluxo em 4 fases com o agente DevOps: **Discovery** (estado atual: Docker/nginx/
 | Painel com `—` em tokens/custo | Transcript ainda não gravado, invocação sem label, ou o passo não foi realmente delegado a um subagent | Rode `/sdd-dashboard --feature <nome>` mais tarde (o matcher re-tenta) ou force o backfill: `node <plugin>/scripts/sdd-tokens.mjs --feature <dir> --project-dir "$(pwd)" --force`. Se a nota disser "sem transcript correspondente", o custo daquele evento é irrecuperável — o agente não rodou como subagent |
 | Passo 6 estourou 3 iterações | Reprovações persistentes | O orquestrador para e apresenta a situação; decida entre relaxar o critério, ajustar o contrato (voltar ao Gate 3) ou intervir manualmente |
 | Comando de teste falha com flag desconhecida | Comando errado no config | Corrija `commands.*` no `sdd.config.json` (os agentes nunca inventam flags — usam o que está lá) |
+| Fase paralela virou sequencial / spawn falhou por falta de slot | Agentes idle de fases anteriores ocupando slots | O orquestrador limpa os slots ao fechar cada fase (P-006); se acontecer, encerre os agentes concluídos e redispare o lote |
 | Rodada interrompida no meio | sessão caiu / abort | Rode `/sdd` de novo com o mesmo nome de feature: os documentos já aprovados são reaproveitados; o orquestrador continua do primeiro passo sem artefato |
 | Feature antiga "sem telemetria" no dashboard | Anterior ao framework | Esperado — só rodadas novas geram RUN.jsonl |
 

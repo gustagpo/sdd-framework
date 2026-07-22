@@ -14,7 +14,8 @@ Exemplo: `/sdd cancelamento-contrato "Permitir cancelar um contrato liberando re
 2. **Você NUNCA lê os documentos da feature inteiros.** Os agentes retornam um `DIGEST DO GATE` (≤30 linhas) — é isso que você apresenta, junto com o path. O usuário abre o arquivo se quiser o inteiro. Sua única leitura de artefato permitida: frontmatter do SPEC.md (`head -8`) para resolver `scope`/flags.
 3. **Só registre `agent_run` se você REALMENTE invocou o Agent.** Trabalho que você fizer inline não gera transcript (custo irrastreável) e queima o contexto da sessão — delegue sempre; se algo não puder ser delegado, registre `note`, nunca `agent_run`. E **sempre passe `name: LABEL`** na invocação: sem ele o custo por agente vira estimativa por janela de tempo (impreciso em passos paralelos).
 4. **Telemetria é parte do passo, não opcional.** Todo evento vai pro RUN.jsonl via `sdd-log.mjs` (nunca printf/JSON manual); ao fim de CADA passo rode `sdd-sync.mjs`; a rodada SEMPRE termina com `run_end`.
-5. **Dentro da fase, os agentes trabalham sem interrupção** (autonomia concedida no Gate Inicial); paradas acontecem apenas nos gates ENTRE fases, conforme o modo.
+5. **Limpe os slots ao fechar cada fase.** Agentes que já entregaram ficam idle **ocupando slot**; o acúmulo faz o spawn em lote da fase seguinte falhar ou virar execução sequencial. Encerrar os concluídos é parte do encerramento da fase, e checar slots livres é **pré-condição** do próximo spawn paralelo (ver "Ao fim de CADA passo" e knowledge P-006).
+6. **Dentro da fase, os agentes trabalham sem interrupção** (autonomia concedida no Gate Inicial); paradas acontecem apenas nos gates ENTRE fases, conforme o modo.
 
 ---
 
@@ -77,7 +78,18 @@ Para CADA invocação, com `LABEL = sdd-<papel>-p<passo>i<iter>-<6 últimos char
 
 **Participação de security/devops**: `agents.<papel>.participation` — `always`/`never`/`auto` (auto = flags `security_sensitive`/`infra_impact` do frontmatter do SPEC, resolvidos após o Passo 1; o usuário pode forçar/dispensar no Gate 1).
 
-### Ao fim de CADA passo (telemetria — 1 comando)
+### Ao fim de CADA passo — encerramento da fase (2 procedimentos, nesta ordem)
+
+**1. LIMPAR OS SLOTS dos agentes concluídos** (obrigatório — antes do gate e antes de qualquer spawn da fase seguinte):
+
+Ao fechar uma fase, **encerre explicitamente todos os agentes daquela fase que já entregaram** — eles ficam *idle mas vivos* ocupando slot, e o acúmulo faz o spawn em lote da fase seguinte (Passo 3 com 5 drafts, Passo 6 com 4 avaliadores) falhar ou degradar silenciosamente para execução sequencial. O ciclo de vida do slot é **seu**, não do agente.
+
+- Encerre cada agente concluído pelo mecanismo do runner em uso (ex.: `TaskStop` no id/label do agente; fechar o painel/sessão quando o spawn for em tmux; equivalente do seu runner). Use o `LABEL` da invocação para saber quem encerrar.
+- **Verificar slots livres é pré-condição do spawn paralelo**, não diagnóstico pós-falha: antes de disparar um lote (Passos 3, 5 e 6), confirme que os agentes das fases anteriores foram encerrados.
+- Nunca encerre agente **em execução** ou que ainda vá ser reinvocado na MESMA fase (ex.: loop de correção do Passo 6 em andamento) — só os que já entregaram e não têm próxima tarefa naquela fase.
+- Ao fim da rodada (após o Passo 7), encerre TODOS os agentes remanescentes.
+
+**2. Telemetria — 1 comando**:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-sync.mjs --feature specs/features/<nome> --project-dir "$(pwd)"

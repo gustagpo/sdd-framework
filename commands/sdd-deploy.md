@@ -50,6 +50,10 @@ Mudanças respeitam o repo existente (adaptar > substituir); áreas proibidas do
 2. Atualize o `DEPLOY.md` com o que foi efetivamente criado e o **checklist de go-live** (itens manuais: DNS, secrets no provedor, primeira execução do pipeline, primeiro `terraform apply` — sempre pelo usuário).
 3. Feche a telemetria (`run_end` + `sdd-sync`) e apresente: digest final, arquivos criados/alterados, validações (passou/pulou), próximos passos manuais numerados.
 
+## Encerramento de fase
+
+Como no `/sdd`: ao fechar cada fase, **encerre o agente concluído (limpar slot)** antes do gate/da próxima fase, e só então rode o `sdd-sync`. Ver knowledge `P-006`.
+
 ## Integração com o fluxo por feature
 
 Com `specs/DEPLOY.md` existente, as rodadas `/sdd` passam a injetá-lo no contexto do devops (e do team-leader no research) — os requisitos OPS-XXX referem-se à topologia real, e features com impacto de infra atualizam o DEPLOY.md como parte do Passo 5.
