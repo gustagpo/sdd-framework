@@ -36,3 +36,10 @@
 **Problema**: documentos reais saem grandes (RESEARCH 80KB, SPEC 52KB, DESIGN 48KB); o orquestrador lendo-os inteiros para apresentar consome o contexto da sessão sem necessidade — o usuário pode abrir o arquivo.
 **Regra**: o agente produtor retorna um `DIGEST DO GATE` (≤30 linhas, o essencial para decidir); o orquestrador apresenta digest + path e não lê o documento (exceção única: frontmatter do SPEC). Budgets de tamanho nos próprios documentos completam a economia.
 **Origem**: mesmas rodadas reais de 16-17/07/2026.
+
+### P-006 — Limpar slots de subagentes concluídos entre fases destrava o paralelismo
+
+**Contexto**: passos do SDD que invocam múltiplos subagentes em paralelo via spawn de painéis/sessões tmux (ex.: Passo 3 com 5 drafts simultâneos, Passo 6 com 4 avaliadores).
+**Problema**: agentes que já terminaram o trabalho ficam **idle mas vivos** ocupando slot; ao longo da rodada os slots acumulam e o spawn da fase seguinte falha ou serializa por esgotamento — o paralelismo planejado degrada silenciosamente para execução sequencial (ou trava).
+**Regra**: encerrar/limpar explicitamente os slots de agentes **concluídos** ao fechar cada fase (antes do gate ou do próximo spawn em lote) — o ciclo de vida do slot pertence ao orquestrador, não ao agente. Verificar slots livres é pré-condição do spawn paralelo, não diagnóstico pós-falha.
+**Origem**: rodada real pagamentos-auditoria-estorno (algar, 21/07/2026) — spawn tmux esgotou slots com agentes idle acumulados entre fases.

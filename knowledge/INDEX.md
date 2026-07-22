@@ -9,6 +9,7 @@
 - P-003 [processo][gates] Gates consomem DIGEST (≤30 linhas) do agente, nunca o documento inteiro
 - P-004 [processo][telemetria] agentType do transcript tem 2 formatos (name livre | subagent_type namespaced) + ruído a filtrar
 - P-005 [processo][telemetria] Só registre agent_run se houve invocação real de subagent — trabalho inline não tem transcript
+- P-006 [processo][orquestrador] Spawn paralelo (tmux) esgota slots com agentes idle acumulados — limpar slots concluídos entre fases é pré-condição do próximo spawn
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -30,6 +31,7 @@
 - N-008 [prisma][dev-backend] Efeito externo é pós-commit; auditoria acoplada ao estado é intra-transação
 - N-009 [nestjs][dev-backend] ValidationPipe global sem `transform` não converte DTO de query
 - N-010 [jest][dev-backend] Método transacional gigante não é testável — extrair lógica pura p/ *.util.ts
+- N-011 [prisma][dev-backend][passo-5] Escrita externa com custo real: recomputar invariante + pré-persistir id de idempotência NA tx (advisory lock); provider pós-commit; nunca confirmado fantasma
 
 ## Stack: Next.js (stacks/nextjs.md)
 

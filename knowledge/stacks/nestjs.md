@@ -61,3 +61,9 @@
 **Problema**: para testar 1 regra seria preciso mockar todo o método transacional — mock frágil e caro; na prática a regra fica sem teste unitário.
 **Regra**: extraia a lógica pura para um `*.util.ts` com spec próprio (funções sem I/O). Fallback aceitável só para mudança trivial de baixo risco enquanto não extraído: `build` verde + inspeção do diff + verificação manual — registrando a dívida.
 **Origem**: algar/LESSONS.md L020
+
+### N-011 — Escrita externa com custo real: validar invariantes e pré-persistir o id de idempotência NA transação; provider pós-commit
+**Contexto**: fluxo que dispara uma operação externa irreversível/com custo (estorno, cobrança, postagem) condicionada a uma invariante de negócio (saldo, estado, limite).
+**Problema**: validar a invariante fora da transação permite double-submit (duas requisições passam pelo check e chamam o provider 2×); validar mas chamar o provider **dentro** da transação viola N-008 (conexão presa + efeito externo não-revertível dentro de rollback); e confirmar o estado local antes da resposta real do provider cria "confirmado fantasma" quando o upstream falha.
+**Regra**: sequência canônica — (1) `$transaction` + advisory lock por chave de negócio (`pg_advisory_xact_lock`); (2) **recomputar** a invariante dentro da tx (nunca confiar no valor lido antes) e rejeitar na borda com **zero** chamada externa; (3) **pré-persistir** o registro da operação com id de idempotência gerado localmente (o provider recebe o mesmo id em retry); (4) commit; (5) chamar o provider **pós-commit** e só então transicionar o estado com a resposta real — falha upstream vira erro tipado, nunca estado confirmado. Testar com duas chamadas concorrentes assertando 1 única chamada externa, e com valor inválido assertando ausência total de chamada.
+**Origem**: algar/LESSONS.md L065 + L056 (rodadas integracao-correios e pagamentos-auditoria-estorno, 07/2026)
