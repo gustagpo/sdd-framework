@@ -15,6 +15,7 @@
 - P-009 [processo][dev-backend][passo-3] O consolidador do CONTRACT deve contradizer o próprio draft quando outro papel traz evidência melhor (a SPEC dizia "sem migration"; o DevOps mostrou migration de dados obrigatória)
 - P-010 [processo][sdd-init][team-leader] Dependência no package.json não prova uso — convenção só entra em doc com evidência de import (grep); dep órfã vira débito
 - P-011 [processo][qa][gates] Infra de teste ausente: detectar no baseline, decidir estratégia (híbrida) no gate, catalogar os casos "requer infra" e listar o não-verificado no EVALUATION
+- P-012 [processo][ops][security][passo-6] Feature que gasta dinheiro exige avaliadores DevOps/Security independentes além do QA — bloqueante ALTA (guarda fail-open de compra) veio do raciocínio operacional com a suíte funcional 100% verde; a correção inclui o teste que faltava (dado hostil), não só o fix
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -44,6 +45,7 @@
 - N-012 [prisma][dev-backend][ops] Migration com `INSERT...SELECT`/`ON CONFLICT` dependente de linha/unique pré-existente vira no-op silencioso — queries de pré-requisito + conferência pós-aplicação
 - N-013 [nestjs][seguranca][dev-backend] Hash de segredo de ALTA entropia (≥256 bits, `randomBytes`) ≠ hash de senha: SHA-256 puro sem salt/KDF (KDF lenta = ~100ms/login sem ganho; salt inviabiliza comparação por igualdade); prefixo de algoritmo (`sha256:`) desambigua hash × texto plano ⇒ migration idempotente + login fail-closed
 - N-014 [nestjs][seguranca][dev-backend] Parâmetro OPCIONAL numa guarda de authz (`x !== undefined && regra`) fura a regra em silêncio no 2º call-site — argumento obrigatório na assinatura; teste com o argumento omitido
+- N-015 [prisma][dev-backend][qa][passo-6] Lookup compartilhado com labels homônimas: leitura escopada × escrita solta = guarda fail-open (efeito com custo repete) — `escrita ⊆ leitura` por construção (união escopado∪solto fail-closed) + fixture com homônimo hostil e fake que honra o `where`
 
 ## Stack: React + Vite (stacks/react-vite.md)
 
