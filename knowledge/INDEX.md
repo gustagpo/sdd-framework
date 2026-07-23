@@ -13,6 +13,8 @@
 - P-007 [processo][gates] Gate supervised reverte propostas: digest leva a proposta E a alternativa descartada com custos — corte de escopo é o mais revertido
 - P-008 [processo][qa][passo-6] Baseline de regressão (unit E e2e) se mede no HEAD pré-feature via `git stash -u`, nunca se herda do TESTS.md/documento — senão falha pré-existente conta como regressão
 - P-009 [processo][dev-backend][passo-3] O consolidador do CONTRACT deve contradizer o próprio draft quando outro papel traz evidência melhor (a SPEC dizia "sem migration"; o DevOps mostrou migration de dados obrigatória)
+- P-010 [processo][sdd-init][team-leader] Dependência no package.json não prova uso — convenção só entra em doc com evidência de import (grep); dep órfã vira débito
+- P-011 [processo][qa][gates] Infra de teste ausente: detectar no baseline, decidir estratégia (híbrida) no gate, catalogar os casos "requer infra" e listar o não-verificado no EVALUATION
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -21,6 +23,10 @@
 ## Ops (PROCESS.md, tags [ops])
 
 <!-- - P-2xx [ops][passo-5] Título curto — lições do agente DevOps ficam em PROCESS.md com tag [ops]; as específicas de stack vão para stacks/<perfil>.md -->
+
+## Stack: Jest — transversal (stacks/jest.md)
+
+- J-001 [jest][qa][dev-backend] `jest.clearAllMocks()` NÃO limpa a fila de `mock*Once` — `mockReset()` no `beforeEach`; resíduo de fila causa falha dependente de ordem
 
 ## Stack: NestJS (stacks/nestjs.md)
 
