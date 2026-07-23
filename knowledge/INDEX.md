@@ -16,10 +16,13 @@
 - P-010 [processo][sdd-init][team-leader] Dependência no package.json não prova uso — convenção só entra em doc com evidência de import (grep); dep órfã vira débito
 - P-011 [processo][qa][gates] Infra de teste ausente: detectar no baseline, decidir estratégia (híbrida) no gate, catalogar os casos "requer infra" e listar o não-verificado no EVALUATION
 - P-012 [processo][ops][security][passo-6] Feature que gasta dinheiro exige avaliadores DevOps/Security independentes além do QA — bloqueante ALTA (guarda fail-open de compra) veio do raciocínio operacional com a suíte funcional 100% verde; a correção inclui o teste que faltava (dado hostil), não só o fix
+- P-013 [processo][team-leader][passo-1] Reconciliar o pedido com o código no discovery — parte pode já existir de rodada anterior; RESEARCH abre com "Escopo real" (evidência arquivo:linha) e a spec cobre só o delta
+- P-014 [processo][qa][passo-4] Teste TDD vermelho tem de falhar por ASSERÇÃO carregando — `Cannot find module` conta 0 no Jest e distorce o tamanho da bateria; criar stub do módulo junto
 
 ## Segurança (PROCESS.md, tags [security])
 
-<!-- - P-1xx [security][passo-6] Título curto — lições do agente Security ficam em PROCESS.md com tag [security] -->
+- P-101 [security][passo-3][passo-6] Endurecer identificador público sem auditar a RESPOSTA = fechadura nova em porta aberta — a superfície importa mais que o id; compat é com os campos consumidos, não com o payload inteiro (whitelist DTO)
+- P-102 [security][passo-1][passo-7] Segurança × retrocompat: dual-resolve por formatos disjuntos + ramo legado como débito com gatilho OBJETIVO; o sinal de observabilidade nasce na mesma entrega (inclusive no caminho de erro); enforcement que pode bloquear receita (429 sob CGNAT) entra em modo observação primeiro
 
 ## Ops (PROCESS.md, tags [ops])
 
@@ -46,6 +49,7 @@
 - N-013 [nestjs][seguranca][dev-backend] Hash de segredo de ALTA entropia (≥256 bits, `randomBytes`) ≠ hash de senha: SHA-256 puro sem salt/KDF (KDF lenta = ~100ms/login sem ganho; salt inviabiliza comparação por igualdade); prefixo de algoritmo (`sha256:`) desambigua hash × texto plano ⇒ migration idempotente + login fail-closed
 - N-014 [nestjs][seguranca][dev-backend] Parâmetro OPCIONAL numa guarda de authz (`x !== undefined && regra`) fura a regra em silêncio no 2º call-site — argumento obrigatório na assinatura; teste com o argumento omitido
 - N-015 [prisma][dev-backend][qa][passo-6] Lookup compartilhado com labels homônimas: leitura escopada × escrita solta = guarda fail-open (efeito com custo repete) — `escrita ⊆ leitura` por construção (união escopado∪solto fail-closed) + fixture com homônimo hostil e fake que honra o `where`
+- N-016 [nestjs][seguranca][qa] Leitura de domínio que lança 404 com o id na mensagem reusada em rota pública = oráculo de existência (e o `throw` genérico abaixo é código morto) — wrapper captura→relança genérico + teste anti-oráculo comparativo por rota (Set size 1)
 
 ## Stack: React + Vite (stacks/react-vite.md)
 
