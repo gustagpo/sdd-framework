@@ -18,6 +18,7 @@
 - P-012 [processo][ops][security][passo-6] Feature que gasta dinheiro exige avaliadores DevOps/Security independentes além do QA — bloqueante ALTA (guarda fail-open de compra) veio do raciocínio operacional com a suíte funcional 100% verde; a correção inclui o teste que faltava (dado hostil), não só o fix
 - P-013 [processo][team-leader][passo-1] Reconciliar o pedido com o código no discovery — parte pode já existir de rodada anterior; RESEARCH abre com "Escopo real" (evidência arquivo:linha) e a spec cobre só o delta
 - P-014 [processo][qa][passo-4] Teste TDD vermelho tem de falhar por ASSERÇÃO carregando — `Cannot find module` conta 0 no Jest e distorce o tamanho da bateria; criar stub do módulo junto
+- P-015 [processo][orquestrador][passo-6] Spawn em lote: agente caído por limite de sessão fica pendurado horas — monitorar atividade com timeout curto (~15-20min sem tool-call = suspeito), re-spawnar limpo cedo (retry ~min vs detecção tardia ~horas); queda por limite é correlacionada no lote, checar os irmãos na hora
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -31,6 +32,7 @@
 ## Stack: Jest — transversal (stacks/jest.md)
 
 - J-001 [jest][qa][dev-backend] `jest.clearAllMocks()` NÃO limpa a fila de `mock*Once` — `mockReset()` no `beforeEach`; resíduo de fila causa falha dependente de ordem
+- J-002 [jest][qa][security][passo-4] Caminhos-irmãos de um guard (ausente × divergente) assertam o MESMO invariante (`not.toHaveBeenCalled()` do efeito externo) — só o status de erro mascara fail-closed violado em ação irreversível com suíte verde
 
 ## Stack: NestJS (stacks/nestjs.md)
 

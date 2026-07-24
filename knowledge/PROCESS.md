@@ -100,6 +100,13 @@
 **Regra**: para todo módulo novo, o QA cria junto o **stub mínimo** (arquivo com as assinaturas exportadas retornando trivial/lançando `NotImplemented`) para que toda suíte **carregue e falhe por asserção**. O relatório do Passo 4 declara "N suítes / M testes, todos falhando por asserção" — falha de load é estado intermediário de escrita, nunca estado entregue do passo. Corolário para a auditoria do Passo 6: reconciliar a contagem do Passo 4 com a final (suítes que não carregavam contam 0) antes de concluir qualquer coisa sobre a integridade do TDD.
 **Origem**: algar, rodada checkout-token-opaco-e-logistica (23/07/2026) — ressalva de processo registrada pelo QA no EVALUATION.
 
+### P-015 — Agente em lote que cai por limite de sessão fica pendurado por horas: monitorar atividade e re-spawnar cedo
+
+**Contexto**: qualquer passo com múltiplos agentes spawnnados em paralelo (típico: Passo 6, avaliadores independentes), orquestrador aguardando as mensagens finais.
+**Problema**: numa rodada real, agentes spawnnados em lote caíram por **limite de sessão** e ficaram **pendurados ~3h45** antes de serem tratados como falha; o retry limpo custou **~8 min**. O custo do incidente não é o retry — é a **detecção tardia**: esperar passivamente a mensagem final não distingue "trabalhando" de "morto", e a rodada inteira fica refém do agente mais quebrado.
+**Regra**: spawn em lote exige monitoramento ativo: (1) verificação periódica de progresso por agente (transcript cresce? há tool-calls recentes?) com **timeout de inatividade** ordens de grandeza menor que a duração esperada do passo (ex.: 15–20 min sem atividade ⇒ suspeito); (2) agente inativo além do timeout é **re-spawnado limpo** sem cerimônia — o retry é barato, o pendurado é caro; (3) limite de sessão/contexto é causa **correlacionada em lote**: se um agente cai por limite, verificar os irmãos imediatamente, sem esperar o timeout individual de cada um. Relaciona-se com P-006 (slots idle no spawn paralelo).
+**Origem**: algar, rodada ciclo-vida-linha (24/07/2026) — Passo 6 com avaliadores em lote; detecção tardia custou ~3h45 contra ~8 min do retry.
+
 ### P-101 [security] — Endurecer o identificador sem auditar a resposta é trocar a fechadura mantendo a porta aberta
 
 **Contexto**: feature pedida como "trocar id sequencial por token opaco" (ou endurecer qualquer identificador) numa rota pública.
