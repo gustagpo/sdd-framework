@@ -107,6 +107,20 @@
 **Regra**: spawn em lote exige monitoramento ativo: (1) verificação periódica de progresso por agente (transcript cresce? há tool-calls recentes?) com **timeout de inatividade** ordens de grandeza menor que a duração esperada do passo (ex.: 15–20 min sem atividade ⇒ suspeito); (2) agente inativo além do timeout é **re-spawnado limpo** sem cerimônia — o retry é barato, o pendurado é caro; (3) limite de sessão/contexto é causa **correlacionada em lote**: se um agente cai por limite, verificar os irmãos imediatamente, sem esperar o timeout individual de cada um. Relaciona-se com P-006 (slots idle no spawn paralelo).
 **Origem**: algar, rodada ciclo-vida-linha (24/07/2026) — Passo 6 com avaliadores em lote; detecção tardia custou ~3h45 contra ~8 min do retry.
 
+### P-016 — Subagente com CWD num subrepo cria `specs/` órfão: docs de feature/estado/lições se escrevem por caminho ABSOLUTO
+
+**Contexto**: workspace multi-repo (raiz do workspace com `specs/` + subrepos de código, ex.: `algar/` com `algar-back/` e `algar-front/`); subagentes spawnnados com CWD dentro do subrepo onde o código muda.
+**Problema**: agente instruído a escrever "em `specs/features/<nome>/...`" resolve o caminho relativo contra o **próprio CWD** e cria uma árvore `specs/` **órfã dentro do subrepo** — o documento "entregue" não existe onde o orquestrador/gates o leem, e o working tree do subrepo ganha lixo que polui o `git status` da feature.
+**Regra**: todo prompt a subagente que escreve fora do repositório em trabalho (docs de feature, STATE, LESSONS, knowledge) usa caminhos **ABSOLUTOS, resolvidos e injetados pelo orquestrador** — o agente nunca infere a raiz do workspace a partir do CWD. O fechamento de cada passo confere (1) a existência do artefato no path canônico e (2) a ausência de `specs/` órfão nos subrepos (`ls <subrepo>/specs` deve falhar).
+**Origem**: algar, rodada notas-algar-por-servico (24/07/2026).
+
+### P-017 — `sdd-log --type note` com `run_id` nulo corrompe o RUN.jsonl (flush race): eventos tipados com run válido + paths absolutos
+
+**Contexto**: telemetria da rodada — RUN.jsonl append-only alimentado por `sdd-log` a partir do orquestrador e de subagentes.
+**Problema**: uma chamada `sdd-log --type note` com `run_id` **nulo** (a sessão do agente não herdou o id da rodada) gravou concorrendo com o flush de outro evento e **corrompeu linhas** do RUN.jsonl (JSONL inválido no meio do arquivo) — dashboard e backfill de custos passam a falhar no parse, e o dano só aparece na leitura, longe da causa.
+**Regra**: (1) evento **sem `run_id` válido é rejeitado na origem** (o wrapper valida antes de abrir o arquivo) — nunca gravado "para não perder"; (2) preferir os **eventos tipados** do fluxo (`step_start`/`agent_run`/`gate`) à `note` genérica — é o evento com menos contexto e o que mais aparece sem run; (3) o path do RUN.jsonl é **absoluto e injetado** no prompt (mesma raiz da P-016) — CWD errado + path relativo é a receita do arquivo fantasma/duplicado; (4) recuperação: linhas inválidas são **quarentenadas** (movidas para um `.corrupt`, não deletadas) para o backfill posterior.
+**Origem**: algar, rodada notas-algar-por-servico (24/07/2026).
+
 ### P-101 [security] — Endurecer o identificador sem auditar a resposta é trocar a fechadura mantendo a porta aberta
 
 **Contexto**: feature pedida como "trocar id sequencial por token opaco" (ou endurecer qualquer identificador) numa rota pública.

@@ -19,6 +19,8 @@
 - P-013 [processo][team-leader][passo-1] Reconciliar o pedido com o código no discovery — parte pode já existir de rodada anterior; RESEARCH abre com "Escopo real" (evidência arquivo:linha) e a spec cobre só o delta
 - P-014 [processo][qa][passo-4] Teste TDD vermelho tem de falhar por ASSERÇÃO carregando — `Cannot find module` conta 0 no Jest e distorce o tamanho da bateria; criar stub do módulo junto
 - P-015 [processo][orquestrador][passo-6] Spawn em lote: agente caído por limite de sessão fica pendurado horas — monitorar atividade com timeout curto (~15-20min sem tool-call = suspeito), re-spawnar limpo cedo (retry ~min vs detecção tardia ~horas); queda por limite é correlacionada no lote, checar os irmãos na hora
+- P-016 [processo][orquestrador] Subagente com CWD num subrepo cria `specs/` órfão — docs de feature/STATE/LESSONS/knowledge por caminho ABSOLUTO injetado no prompt (agente nunca infere a raiz); fechamento confere path canônico + ausência de specs/ órfão nos subrepos
+- P-017 [processo][telemetria] `sdd-log --type note` com run_id nulo corrompe o RUN.jsonl (flush race) — evento sem run válido é REJEITADO na origem; preferir eventos tipados a note; path do RUN.jsonl absoluto e injetado; linha inválida é quarentenada, não deletada
 
 ## Segurança (PROCESS.md, tags [security])
 
