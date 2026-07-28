@@ -121,6 +121,27 @@
 **Regra**: (1) evento **sem `run_id` válido é rejeitado na origem** (o wrapper valida antes de abrir o arquivo) — nunca gravado "para não perder"; (2) preferir os **eventos tipados** do fluxo (`step_start`/`agent_run`/`gate`) à `note` genérica — é o evento com menos contexto e o que mais aparece sem run; (3) o path do RUN.jsonl é **absoluto e injetado** no prompt (mesma raiz da P-016) — CWD errado + path relativo é a receita do arquivo fantasma/duplicado; (4) recuperação: linhas inválidas são **quarentenadas** (movidas para um `.corrupt`, não deletadas) para o backfill posterior.
 **Origem**: algar, rodada notas-algar-por-servico (24/07/2026).
 
+### P-018 — Invariante "fonte única" declarada no CONTRACT nasce com spec de paridade — e a reconciliação certa ELIMINA um dos lados, não sincroniza
+
+**Contexto**: CONTRACT/SPEC que declara "critério único"/"fonte única" para uma decisão usada por múltiplos call-sites (ex.: "é do tipo X?" decidindo guardas de segurança, filtros de catálogo e materialização).
+**Problema**: a afirmação é **verificável e ninguém a verifica**. Em rodada real, o CONTRACT dizia "critério de tipo — um só" e existiam **dois** (um predicado SQL por igualdade estrita e um helper em memória com normalização de acentos/caixa), cada um passando nos próprios testes — a divergência abria bypass latente de uma guarda de segurança (a grafia acentuada escapava por um dos lados). A auditoria de cobertura não pega: cada critério tem testes verdes.
+**Regra**: (1) toda invariante de "fonte única" escrita em documento nasce com um **spec de paridade** que confronta **todos** os call-sites sobre a mesma tabela de entradas hostis (acentos, caixa, espaços, prefixos/sufixos) — a afirmação vira verdade **verificada**, e reintroduzir um predicado paralelo quebra o teste; (2) ao encontrar dois critérios divergentes, a primeira opção é **eliminar um** (concentrar a decisão num único lugar, preferindo a guarda mais **ampla** quando ela protege) — sincronizar mantém a possibilidade de drift que eliminar mata.
+**Origem**: algar/LESSONS.md L084 — achados Q-2/S-03 da rodada servico-bonus-temporario (28/07/2026); critério SQL eliminado, paridade travada por spec de 22 strings hostis × call-sites reais.
+
+### P-019 — Campo de resposta contratado sem NENHUM teste contra a classe real simplesmente não é entregue — e ninguém percebe
+
+**Contexto**: CONTRACT que adiciona um campo **opcional** à resposta de uma API existente, com o frontend consumindo-o (tipos, componente, estados visuais completos).
+**Problema**: a ausência de um campo opcional é **silenciosa por construção** em linguagens com opcionais (TypeScript): o front correto compila, o build passa, o componente renderiza o estado "vazio" sem erro — e o campo pode atravessar DESIGN, CONTRACT, TDD e avaliações **sem nunca ter sido implementado no backend**. Em rodada real, isso fez uma coluna operacional afirmar "sem bônus" para linhas com bônus; só a leitura do repositório revelou (nenhum teste exercitava o campo contra a classe real — os que existiam mockavam a resposta já com o campo). Agravante: quando o componente degrada para o estado vazio e esse estado **afirma** algo, o campo morto vira informação falsa.
+**Regra**: todo campo **novo** de resposta contratado no CONTRACT entra na bateria com pelo menos um caso contra a **classe de repositório/serviço real** (fake do ORM que honra `where`/`select`, nunca mock que devolve o campo pronto) — o checklist de auditoria do Passo 6 confere campo a campo do §API do CONTRACT: "existe um teste que falharia se este campo não fosse produzido?". E o contrato de **degradação** acompanha: falha de leitura devolve campo **ausente**, nunca `[]`/valor neutro fabricado (ausência = "não sei"; vazio = afirmação).
+**Origem**: algar/LESSONS.md L085 — achado Q-8 (bloqueante da 2ª revalidação) da rodada servico-bonus-temporario (28/07/2026).
+
+### P-020 — Allowlist de Bash estreita trava a rodada no meio do Passo 5 — e o agente NÃO pode ampliá-la: conferir no Gate 0
+
+**Contexto**: rodada SDD com subagentes que executam comandos (test/build/generate) sob uma allowlist de permissões de Bash do harness.
+**Problema**: quando a allowlist não cobre um comando de que os Devs/QA precisam, os subagentes **travam no meio do Passo 5/6** — e o agente **não pode** se auto-conceder a permissão (o classificador de segurança bloqueia a edição da allowlist pelo próprio agente, **corretamente**: anti-escalada). Destravar é ação **do usuário**, que pode não estar presente; a rodada inteira fica refém de um pré-requisito que era conferível de graça no início.
+**Regra**: a conferência da allowlist é item do **Gate 0** (setup da rodada), não descoberta do meio do passo: o orquestrador lista os comandos que a rodada vai exigir (os `commands` do `sdd.config.json` + `db:generate`/`build`/`test` das stacks envolvidas) e valida que a allowlist os cobre **antes** de spawnnar os agentes; lacuna vira pedido explícito ao usuário no Gate 0. Corolário: nunca instruir um subagente a "ajustar as permissões" — é bloqueado por design; o caminho é sempre o usuário.
+**Origem**: algar, rodada servico-bonus-temporario (28/07/2026) — subagentes travados por allowlist estreita no Passo 5; destravado manualmente pelo usuário.
+
 ### P-101 [security] — Endurecer o identificador sem auditar a resposta é trocar a fechadura mantendo a porta aberta
 
 **Contexto**: feature pedida como "trocar id sequencial por token opaco" (ou endurecer qualquer identificador) numa rota pública.

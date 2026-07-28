@@ -21,6 +21,9 @@
 - P-015 [processo][orquestrador][passo-6] Spawn em lote: agente caído por limite de sessão fica pendurado horas — monitorar atividade com timeout curto (~15-20min sem tool-call = suspeito), re-spawnar limpo cedo (retry ~min vs detecção tardia ~horas); queda por limite é correlacionada no lote, checar os irmãos na hora
 - P-016 [processo][orquestrador] Subagente com CWD num subrepo cria `specs/` órfão — docs de feature/STATE/LESSONS/knowledge por caminho ABSOLUTO injetado no prompt (agente nunca infere a raiz); fechamento confere path canônico + ausência de specs/ órfão nos subrepos
 - P-017 [processo][telemetria] `sdd-log --type note` com run_id nulo corrompe o RUN.jsonl (flush race) — evento sem run válido é REJEITADO na origem; preferir eventos tipados a note; path do RUN.jsonl absoluto e injetado; linha inválida é quarentenada, não deletada
+- P-018 [processo][qa][security][passo-3][passo-4] Invariante "fonte única" no CONTRACT nasce com spec de PARIDADE (entradas hostis × todos os call-sites); reconciliar divergência ELIMINANDO um lado (guarda mais ampla), nunca sincronizando dois predicados
+- P-019 [processo][qa][passo-4][passo-6] Campo opcional de resposta contratado sem teste contra a classe REAL não é entregue (ausência é silenciosa em TS) — auditoria confere campo a campo do §API; degradação devolve campo AUSENTE, nunca []/neutro
+- P-020 [processo][orquestrador][gates] Allowlist de Bash estreita trava a rodada no meio do Passo 5 e o agente NÃO pode ampliá-la (anti-escalada, bloqueio correto) — conferir cobertura dos comandos da rodada no Gate 0; lacuna é pedido ao usuário
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -35,6 +38,7 @@
 
 - J-001 [jest][qa][dev-backend] `jest.clearAllMocks()` NÃO limpa a fila de `mock*Once` — `mockReset()` no `beforeEach`; resíduo de fila causa falha dependente de ordem
 - J-002 [jest][qa][security][passo-4] Caminhos-irmãos de um guard (ausente × divergente) assertam o MESMO invariante (`not.toHaveBeenCalled()` do efeito externo) — só o status de erro mascara fail-closed violado em ação irreversível com suíte verde
+- J-003 [jest][qa][passo-4] Fixture de dado que o PRÓPRIO sistema produz deriva o shape do código PRODUTOR (FKs inclusive; 1 variante por origem) — fixture "conveniente" com FK nula que produção nunca gera = suíte verde contra dado inexistente
 
 ## Stack: NestJS (stacks/nestjs.md)
 
@@ -54,10 +58,12 @@
 - N-014 [nestjs][seguranca][dev-backend] Parâmetro OPCIONAL numa guarda de authz (`x !== undefined && regra`) fura a regra em silêncio no 2º call-site — argumento obrigatório na assinatura; teste com o argumento omitido
 - N-015 [prisma][dev-backend][qa][passo-6] Lookup compartilhado com labels homônimas: leitura escopada × escrita solta = guarda fail-open (efeito com custo repete) — `escrita ⊆ leitura` por construção (união escopado∪solto fail-closed) + fixture com homônimo hostil e fake que honra o `where`
 - N-016 [nestjs][seguranca][qa] Leitura de domínio que lança 404 com o id na mensagem reusada em rota pública = oráculo de existência (e o `throw` genérico abaixo é código morto) — wrapper captura→relança genérico + teste anti-oráculo comparativo por rota (Set size 1)
+- N-017 [nestjs][prisma][seguranca] Update parcial sem DTO: ramo de validação decide pelo estado EFETIVO (`payload ?? banco`), nunca pelo tipo do payload — Prisma ignora `undefined` e o PUT parcial burla a regra; teste do exploit + não-regressão na bateria
 
 ## Stack: React + Vite (stacks/react-vite.md)
 
 - R-001 [react][dev-frontend] Flag de feedback visual transitório (`setTimeout` que volta em Ns) nunca serve de flag de permissão de fluxo — dois estados: permanente (`jaCopiou`) × transitório (`mostrandoCheck`); reusar um pelo outro re-desabilita o botão/re-bloqueia o dialog
+- R-002 [react][dev-frontend][qa] Estado vazio que AFIRMA ("sem X") ≠ dado ausente: renderização distingue `undefined`/campo omitido (gate OFF, falha — célula neutra) de `[]` real (afirmação); backend coopera omitindo o campo na degradação, nunca `[]` fabricado
 
 ## Stack: Next.js (stacks/nextjs.md)
 
