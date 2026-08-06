@@ -6,7 +6,7 @@
 
 - P-001 [processo][telemetria] Custo por agente exige label determinístico na invocação + telemetria em 1 comando por passo
 - P-002 [processo][orquestrador] Uma feature por sessão — 2 rodadas na mesma sessão estouram o contexto
-- P-003 [processo][gates] Gates consomem DIGEST (≤30 linhas) do agente, nunca o documento inteiro — **e o digest do agente é atalho, não fonte: sem ele, derivar do artefato (P-023)**
+- P-003 [processo][gates] Gates consomem DIGEST (≤30 linhas) do agente, nunca o documento inteiro — **e o digest do agente é atalho, não fonte: sem ele, derivar do artefato (P-023; 4ª rodada confirmando em 06/08 — medições de gate também se derivam de artefato+comando)**
 - P-004 [processo][telemetria] agentType do transcript tem 2 formatos (name livre | subagent_type namespaced) + ruído a filtrar
 - P-005 [processo][telemetria] Só registre agent_run se houve invocação real de subagent — trabalho inline não tem transcript
 - P-006 [processo][orquestrador] Spawn paralelo (tmux) esgota slots com agentes idle acumulados — limpar slots concluídos entre fases é pré-condição do próximo spawn
@@ -32,6 +32,8 @@
 - P-026 [processo][orquestrador][qa][passo-5][passo-6] Contagem de testes que sustenta gate é MEDIDA pelo orquestrador (comando canônico), nunca herdada do relato do agente; delta entre iterações fecha ARITMETICAMENTE (origem de cada teste + 0 deleções + 0 .skip/.only); divergência não reproduzível se registra como NÃO EXPLICADA — hipótese nunca vira causa
 - P-027 [processo][qa][dev-backend][passo-3][passo-4][passo-5] Caso de teste com asserções INSATISFAZÍVEIS (not.toContain de substring do valor esperado) atravessa draft+consolidação+TDD — vermelho esperado mascara teste impossível; revisão do Passo 4 checa satisfiabilidade de pares positivo/negativo; correção de teste pelo dev no Passo 5 é evento auditável (corrigido ≠ afrouxado)
 - P-028 [processo][passo-3][dev-backend][security][dev-frontend] Drafts paralelos: toda recomendação de contrato declara a SUPERFÍCIE (rota/auth/consumidor) — maioria dos conflitos de consolidação é escopo implícito divergente (dois papéis certos em superfícies diferentes: aninhados no painel × whitelist na pública); resolução = escopar ambos, não eleger vencedor
+- P-029 [processo][gates][dev-frontend][qa][passo-3] Decisão de gate que muda AUTHZ propaga no MESMO passo: caso de UI ("sem permissão não vê o controle") + gating no front (hook de permissão na condição de render) + spec RBAC das rotas + nota de re-login — decisão sem caso derivado é furo de consolidação; ação mais restrita que a tela exige gating próprio (senão 403 universal reportado como bug)
+- P-030 [processo][qa][ux-ui][passo-6] Mutação é passo fixo do Passo 6, nos 2 sentidos: spec alterado no Passo 5 ⇒ reverter a implementação e exigir vermelho (senão foi afrouxado); correção nova ⇒ remover o fix e exigir vermelho (senão não tem guarda — verde pelo motivo errado); ~2 comandos, restaurar sempre, registrar no EVALUATION — é o teste do teste
 
 ## Segurança (PROCESS.md, tags [security])
 
@@ -52,7 +54,8 @@
 - J-004 [jest][qa][dev-backend] `npx jest` avulso NÃO carrega a config do workspace ⇒ erro de parse de TypeScript FALSO em linha válida (sem transform/moduleNameMapper) — rodar sempre pelo script do projeto; erro de sintaxe que só aparece numa forma de invocação é do transform, não do arquivo
 - J-005 [jest][qa][dev-frontend][passo-4][passo-6] Verificação estrutural por regex do fonte (`toMatch(/https:/)`) tem teto baixo — passa com a string em comentário; lógica em função pura EXPORTADA ganha teste de unidade real com entradas hostis mesmo sem testing-library; regex fica restrita a atributos JSX/imports (é lint, não teste de comportamento)
 - J-006 [jest][qa][security][passo-6] Byte NUL LITERAL no fonte torna o spec "binário": `grep` devolve zero EM SILÊNCIO e cega auditoria de cobertura por ID — auditar pela saída do RUNNER (`jest --json`); fonte com `grep -a`/`rg --text`/`cat -v`; caractere hostil em teste/doc entra como ESCAPE (`'\x00'`), nunca literal; `file` ⇒ `data` num `.ts` é smell
-- J-007 [jest][qa][security][passo-6] Util de redação/masking de log sem spec próprio: o 1º teste real revelou MUTAÇÃO do payload do chamador + recursão infinita em corpo cíclico DENTRO do logger — spec mínimo: chave mascarada por IGUALDADE (nunca substring), vizinhos intactos, não-mutação do input, corpo cíclico degrada sem lançar
+- J-007 [jest][qa][security][passo-6] Util de redação/masking de log sem spec próprio: o 1º teste real revelou MUTAÇÃO do payload do chamador + recursão infinita em corpo cíclico DENTRO do logger — spec mínimo: chave mascarada por IGUALDADE (nunca substring), vizinhos intactos, não-mutação do input, corpo cíclico degrada sem lançar; reforço 06/08: a fixture carrega o dado sensível NO CANAL exato do vazamento (2 canais ≠ 1 fixture) — o teste de uma redação de PII tem de FALHAR quando ela é removida (provar por mutação, formato real do provedor)
+- J-008 [jest][qa][dev-backend][rbac] Spec RBAC com asserção genérica ("todo handler ⇒ read") quebra POR DESIGN na 1ª rota de escrita legítima e induz afrouxamento p/ toEqual permissivo — molde: grupos nominais (permissão exata por grupo) + asserção de cobertura exaustiva (rota nova obriga classificação consciente); mudança de spec RBAC se adjudica por mutação (decorator removido ⇒ vermelho)
 
 ## Stack: NestJS (stacks/nestjs.md)
 
@@ -91,6 +94,7 @@
 - R-003 [react][dev-frontend][qa] Campo não-opcional vindo de API é promessa, não garantia (`data.acoes.length` ⇒ TypeError na tela inteira): tipo do front declara coleção de API como OPCIONAL, normalização pura no SERVIÇO (`?? []` + alias) e `?? []` também no componente; cuidado com R-002 quando o vazio afirma
 - R-002 [react][dev-frontend][qa] Estado vazio que AFIRMA ("sem X") ≠ dado ausente: renderização distingue `undefined`/campo omitido (gate OFF, falha — célula neutra) de `[]` real (afirmação); backend coopera omitindo o campo na degradação, nunca `[]` fabricado
 - R-004 [react][dev-frontend][qa][passo-6] Diálogo que não desmonta: reset de sessão por INVENTÁRIO completo (todo useState E useRef classificados) num único efeito — correção pontual gera o próximo defeito da mesma classe (3 iterações reais); ref que escreve só desfaz o que ELE escreveu e o marcador também entra no reset; sem runner, a decisão vira helper puro (J-005)
+- R-005 [react][dev-frontend][qa] Form de edição sobre PUT PARCIAL: omitir chave vazia = PRESERVAR o valor antigo com toast de sucesso mentindo — payload distingue intocado (omite) × limpo (envia `null`/`""` que limpa, colunas reais decidem); semântica parcial×full-replace é fato do contrato, nunca presunção; caso "esvaziar, salvar, recarregar" obrigatório; teste que fixava a omissão se REESCREVE mais forte (mutação prova); lado backend = N-017
 
 ## Stack: Next.js (stacks/nextjs.md)
 
