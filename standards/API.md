@@ -58,7 +58,7 @@ Nunca serializar stack trace, SQL, segredo ou PII no corpo de erro (A-15).
 - [ ] A-02: O método HTTP casa com a semântica (sem efeito colateral em `GET`; criação por `POST`).
 - [ ] A-03: `POST` de criação responde **201** com o id (e/ou recurso) criado.
 - [ ] A-04: Ação sem corpo de resposta responde **204**; nunca 200 com corpo vazio ambíguo.
-- [ ] A-05: Toda entrada (body/query/params) passa por DTO/schema de validação na borda antes do caso de uso.
+- [ ] A-05: Toda entrada (body/query/params) passa por DTO/schema de validação na borda antes do caso de uso. **Exceção contratada**: rota pública anti-enumeração cujo contrato exige envelope de erro de FONTE ÚNICA (ex.: 404 genérico byte a byte em todos os caminhos) valida **em código** — o pipe de validação produziria um 2º envelope (400 `{message:[…]}`) que quebra o anti-oráculo. O desvio é declarado no CONTRACT da feature, a validação manual cobre também caracteres de controle (N-026) e o teste comparativo (`Set` + literal, N-016) prova o envelope único.
 - [ ] A-06: Erro segue o formato padrão (código estável + mensagem + detalhes por campo em validação); não retorna string solta nem stack trace.
 - [ ] A-07: O status de erro é o canônico da tabela (validação → 422, permissão → 403, ausência → 404, conflito → 409).
 - [ ] A-08: Resposta expõe DTO, nunca a entidade de persistência crua (ver DDD `D-05`).
