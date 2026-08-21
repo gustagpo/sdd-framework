@@ -19,7 +19,7 @@
 
 ## Comandos
 
-> Os agentes usam SEMPRE estes comandos (nunca inventam flags). Placeholder `{pattern}` = filtro de arquivos de teste da feature.
+> Os agentes usam SEMPRE estes comandos (nunca inventam flags). Placeholder `{pattern}` = filtro de arquivos de teste da feature — **atalho de iteração, não a âncora de regressão**: o padrão por NOME de arquivo é cego para suíte de outro domínio que exercita um resolver/helper compartilhado tocado pelo diff (P-056). A âncora do Passo 6 é **nome ∪ símbolos tocados pelo diff** (`grep -rl` dos identificadores alterados em `*.spec.*`), e a suíte completa com **delta zero** contra a baseline medida (P-008) continua obrigatória.
 
 | Ação | Comando |
 |---|---|
