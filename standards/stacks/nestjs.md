@@ -108,6 +108,18 @@ it('B-003 lança NotFound quando dependência não existe', async () => {
 });
 ```
 
+- **Unit com `new` não prova fiação.** Todo módulo novo com token Symbol/interface entrega um **spec de fiação** que compila o módulo real e assere que cada colaborador foi injetado de fato; o aceite de deployability é o **boot do `dist`** (`node dist/src/main.js` até `Nest application successfully started`, por quem não escreveu o código), não o `build` — ver `knowledge/stacks/nestjs.md` N-036/N-043/N-047:
+
+```typescript
+// src/domain/pedido/pedido.module.di.spec.ts
+const mod = await Test.createTestingModule({ imports: [PedidoModule] })
+  .overrideProvider(PrismaService).useValue({})        // bordas de I/O
+  .compile();
+const repo = mod.get<PedidoRepositoryImp>(PEDIDO_REPOSITORY);
+expect(repo).toBeDefined();
+expect((repo as any).parametros).toBeDefined();        // o @Optional() chegou — mutante: remover o @Inject ⇒ vermelho
+```
+
 - Comandos exatos vêm do `sdd.config.json` do projeto — nunca invente flags.
 
 ## Armadilhas conhecidas
@@ -120,3 +132,4 @@ it('B-003 lança NotFound quando dependência não existe', async () => {
 - **`console.log` em produção**: usar `Logger` do Nest — `util.inspect` trunca objetos aninhados em profundidade 2; para payloads de webhook logar `JSON.stringify(obj, null, 2)`.
 - **Efeito colateral dentro da transação**: chamada HTTP externa dentro de `$transaction` segura a conexão e reverte pagamento já efetuado — sempre pós-commit.
 - **Migrations não idempotentes**: sempre `IF NOT EXISTS` / `ON CONFLICT DO NOTHING`; sequences dessincronizadas exigem `setval(pg_get_serial_sequence(...))` antes de INSERT com PK explícita.
+- **Parâmetro tipado por INTERFACE sem `@Inject(TOKEN)`**: a interface some em runtime ⇒ `design:paramtypes[i] === undefined` ⇒ `UnknownDependenciesException` **só no boot** (build e unit com `new` ficam verdes); o `?` do TypeScript não é `@Optional()` do Nest, e `@Optional()` sem `@Inject` continua sem token — o par é sempre `@Optional() @Inject(TOKEN)`. Prova de boot sem banco: o Prisma conecta preguiçosamente; sem `timeout` no host (macOS), `perl -e 'alarm 20; exec @ARGV' node dist/src/main.js` (exit 142 = encerrado pelo alarme, não falha).
