@@ -50,7 +50,7 @@ O mesmo shape para todo erro; o cliente programa contra `code`, não contra `mes
 { "code": "PEDIDO_JA_FINALIZADO", "message": "Pedido já finalizado." }
 ```
 
-Nunca serializar stack trace, SQL, segredo ou PII no corpo de erro (A-15).
+`message` é diagnóstico, não contrato — e é **opcional**: produto com i18n no cliente resolve o texto do catálogo pelo `code` (`errors.<code>`, fallback `unknown`) e **omite** `message` do corpo, para nenhum texto de usuário nascer no servidor (a prosa de diagnóstico vive no log, correlacionada por request-id). Nunca serializar stack trace, SQL, segredo ou PII no corpo de erro (A-15).
 
 ## Regras verificáveis
 
@@ -59,7 +59,7 @@ Nunca serializar stack trace, SQL, segredo ou PII no corpo de erro (A-15).
 - [ ] A-03: `POST` de criação responde **201** com o id (e/ou recurso) criado.
 - [ ] A-04: Ação sem corpo de resposta responde **204**; nunca 200 com corpo vazio ambíguo.
 - [ ] A-05: Toda entrada (body/query/params) passa por DTO/schema de validação na borda antes do caso de uso.
-- [ ] A-06: Erro segue o formato padrão (código estável + mensagem + detalhes por campo em validação); não retorna string solta nem stack trace.
+- [ ] A-06: Erro segue o formato padrão (código estável como contrato + detalhes por campo em validação); `message` legível é opcional — produto com i18n no cliente resolve o texto pelo `code` e omite `message` (texto de usuário não nasce no servidor); não retorna string solta nem stack trace.
 - [ ] A-07: O status de erro é o canônico da tabela (validação → 422, permissão → 403, ausência → 404, conflito → 409).
 - [ ] A-08: Resposta expõe DTO, nunca a entidade de persistência crua (ver DDD `D-05`).
 - [ ] A-09: Endpoint de lista responde no envelope de paginação padrão do perfil (itens + total/cursor), idêntico entre recursos.
