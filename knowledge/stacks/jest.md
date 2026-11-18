@@ -245,6 +245,8 @@
 **Regra**: (1) fixture nasce do `schema.prisma` (ou de um spec vizinho do mesmo modelo), e todo vermelho "intencional" é conferido contra o schema antes de virar achado; (2) quando o dublê não simula o erro do banco, o oráculo assere a **sequência de chamadas** (mecanismo) e a prova real vira condição de go-live; (3) PoC/regressão assere **efeito observável** (escritas, valores), não método — sobrevive à correção; (4) dublê declara DEFAULT de coluna quando o código depende dele.
 **Origem**: algar, rodada faturamento-consumo-fundacao (22/09/2026) — A-03/A-04/A-15, E-026, `fechamento-ciclo.viradas.spec.ts`, `*.sec-regressao.spec.ts`; L236 do projeto.
 
+**Reforço (17/11/2026, algar, fatura-cancelamento-e-exclusao-item — T-047)**: spec de concorrência contra Postgres real escrito **sem banco no ar** ficou `skipped` na aprovação e, ao rodar, falhou por coluna inventada (`dados` × `dados_evento`). Spec com dependência de infraestrutura é executado 1× antes de aprovar (contêiner local) ou ganha dono nomeado no runbook; `skipped` aparece no EVALUATION e não conta como aprovação.
+
 ### J-029 — Dublê de `ReadableStream` puxa 1 chunk ao ser CONSTRUÍDO: "recusa sem ler o corpo" esperava `pulled === 0` e via 1 — `highWaterMark: 0` + asserção do `cancel()`; e guarda de fonte por regex quebra com genérico TS (`fn<T>(`)
 
 **Contexto**: provider que lê um corpo HTTP em stream com teto de bytes e tem de provar que, com `Content-Length` acima do teto, **não lê nada** e cancela o corpo (B-916/SEC-910); guarda de fonte (Vitest, `environment: node`) que exige `useMutation(` por botão (F-910).

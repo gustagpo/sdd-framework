@@ -352,6 +352,8 @@
 
 **Reforço (23/09/2026, algar, consumo-demonstrativo-pdf — QA D-2 / DevOps A-5) — a divergência nasceu NO MESMO PASSO em que o log foi escrito**: o runbook listava 2 slugs de `causa` que o código não emite (`em-processamento|desligado` — 409/422 só na resposta) e omitia 1 `resultado` (`REUTILIZADO`) e 1 `causa` (`persistencia`); o teste funcional do log seguia o código, cego ao runbook, e a RN do SPEC ficou desatualizada até o Passo 7. Regra: a guarda de paridade nasce no **Passo 4 junto com o log** (não no Passo 6); varre a **fonte** de produção (literais, literais dentro de `${…}` e, para variável tipada, os membros do union type — um teste de runtime só vê as linhas que o caso exercita); compara nos 2 sentidos com a linha do runbook que o plantão copia; inclui a linha de boot; e cobre o SPEC quando ele fixa a gramática.
 
+**Reforço (17/11/2026, algar, fatura-cancelamento-e-exclusao-item — BE-1/BE-2/DO-1) — feature em várias bases que emitem log**: o runbook descrevia linha de boot e `resultado=DESLIGADO` que o código não emitia; corrigido com **um spec de paridade por base emissora** (2 backends + motor) lendo a **mesma** seção do runbook, nos 2 sentidos. O spec nasce no Passo 4/5, não no Passo 6.
+
 ### P-038 — Mutante mascarado por defesa em profundidade, e teste que NOMEIA uma corrida sem reproduzi-la: mutar cada guarda isolada, e a concorrência exige a 2ª escrita com a mesma chave
 
 **Contexto**: Passo 6 com prova por mutação (P-034) sobre invariantes com **duas** guardas (pré-checagem + índice único; `SKIP LOCKED` + re-check do Postgres; saneamento + driver que substitui) e testes rotulados como "concorrência".
@@ -981,3 +983,24 @@
 **Problema**: o modelo da branch resolvia identificação e rota bem (token opaco UUID já existente no dono, validação antes do banco, 404 genérico único), mas entregava o arquivo por **URL pré-assinada + 302**, persistia a **URL S3 completa** na coluna do dono, logava `S3 put <url>` e não tinha limiter nem verificação de integridade — cada um deles contradiz regras já fixadas no projeto (nunca URL S3 exposta/persistida — N-078; stream com sha re-verificado — N-074; limiter em rota anônima). Um cherry-pick dos commits traria o presigner, o driver `disk` e o 302 junto.
 **Regra**: (1) "copiar o modelo" = copiar o **contrato observável** que interessa ao merge (paths, nomes de módulo/serviço, identificação, códigos de erro) — e o CONTRACT diz **como** a branch faz, **o que** se adota igual e **o que** diverge, ponto a ponto, com a resolução de cada divergência (aqui 7: 302⇒stream, URL⇒chave, log de URL⇒ids, +integridade, +limiter, painel em path próprio, portal com posse); (2) divergência sempre a favor da regra mais estrita já em vigor no projeto (a decisão do usuário fixa o **modelo**, não o afrouxamento); (3) reúso por **cópia à mão** do esqueleto (~60 linhas), nunca `git cherry-pick` de commit que carrega o mecanismo recusado — o commit vem com o presigner; (4) o débito de merge nasce nomeado no CONTRACT (`DocumentoPublicoService.boleto` resolve a tabela nova ∪ a coluna legada; o 302 da branch vira stream "pela mesma regra do usuário"), com dono = quem conduzir o merge; (5) o path idêntico é deliberado: colidir no merge é o objetivo (um só resolvedor), não um acidente.
 **Origem**: algar, rodada boleto-sicoob-cobranca (30/09/2026) — CONTRACT §Decisões do Gate 3 D-G3-7 (7 conflitos e resolução; commits `a629231`/`9d07987`/`2f29f68` da branch Navus lidos, não cherry-pickados), `presentation/api/documento-publico/`, B-033/RS-11; L271 do projeto.
+
+### P-221 [ops][devops][dev-backend][qa] — Migration nova é aplicada 1× (e 2×) num banco com o DDL REAL de produção antes da avaliação: banco embutido, dublê e migration-spec textual não pegam tamanho de coluna
+
+**Contexto**: feature aprovada com todos os specs verdes, incluindo migration-spec (guardas textuais sobre o SQL) e prova em banco embutido de outra rodada; a migration inseria 2 linhas num cadastro de domínio.
+**Problema**: a coluna `descricao` do cadastro é `VARCHAR(30)` no banco real e os literais tinham 32 e 36 caracteres — a migration **falharia no deploy de produção**. Só apareceu quando o Dev aplicou a migration num contêiner com cópia do banco + todas as migrations até a data, a pedido do usuário, depois da aprovação.
+**Regra**: (1) aplicar a migration 2× num banco com o DDL real é critério de saída do Passo 5 (o EVALUATION cita o banco usado); (2) INSERT em tabela de cadastro confere cada literal contra `information_schema.columns.character_maximum_length`; (3) onde não há banco local fiel (cargas parciais), a prova é simulação no banco do ambiente com `ROLLBACK`, declarada como tal.
+**Origem**: algar, rodada fatura-cancelamento-e-exclusao-item (17/11/2026) — EVALUATION §Adendo pós-it.2, DEPLOY §58.11; L281 do projeto.
+
+### P-222 [processo][orquestrador][team-leader][dev-frontend] — Decisão de regra tomada depois da implementação vem com a lista dos TEXTOS que descrevem a regra antiga (UI, toasts, runbook), cada um como tarefa nominal
+
+**Contexto**: no gate do Passo 5 o usuário mudou uma regra (fatura regerada herda crédito; crédito que zera ⇒ fatura quitada sem cobrança).
+**Problema**: o back implementou a regra nova e o diálogo do front seguiu prometendo "o cliente receberá a cobrança" — UX e QA reprovaram a iteração. A decisão foi registrada como regra de negócio, não como lista de artefatos a mudar.
+**Regra**: ao registrar decisão pós-Passo 5 no CONTRACT, o orquestrador anexa o grep dos textos afetados (rótulos, alertas, toasts, seções de runbook/smoke/gramática) e os distribui como itens nominais por agente; o QA ganha um caso por texto.
+**Origem**: algar, rodada fatura-cancelamento-e-exclusao-item (17/11/2026) — EVALUATION it.1 FE-1, CONTRACT "Ajustes aos anexos"; L282 do projeto.
+
+### P-223 [processo][orquestrador][ambiente] — Suítes completas de várias bases em paralelo esgotam a memória da máquina e derrubam as sessões dos agentes: serializar suíte completa, uma base por vez, com workers limitados
+
+**Contexto**: feature em 5 bases (2 backends, 1 motor de filas, 2 frontends), agentes do Passo 5/6 rodando suítes completas ao mesmo tempo para provar "0 regressão".
+**Problema**: a máquina ficou sem memória e as sessões caíram no meio da rodada; a retomada custou tempo e a medição foi refeita.
+**Regra**: Jest `--maxWorkers=2`, vitest 1 thread; o orquestrador serializa agentes que rodam suíte completa (recorte da feature pode ser paralelo); a linha de base é medida com as mesmas flags para comparar falha a falha.
+**Origem**: algar, rodada fatura-cancelamento-e-exclusao-item (17/11/2026) — RUN.jsonl; L285 do projeto.
